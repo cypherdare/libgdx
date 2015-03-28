@@ -19,7 +19,8 @@ package com.badlogic.gdx.graphics.g3d.decals;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-/** Material used by the {@link Decal} class */
+/** Material used by the {@link Decal} class. Subclasses must properly override {@link #equals(Object o)} and 
+ * {@link #hashCode()}. */
 public class DecalMaterial {
 	public static final int NO_BLEND = -1;
 	protected TextureRegion textureRegion;

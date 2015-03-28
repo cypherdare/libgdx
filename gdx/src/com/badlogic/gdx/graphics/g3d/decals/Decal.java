@@ -55,10 +55,19 @@ public class Decal {
 	public Vector2 transformationOffset = null;
 	protected Vector2 dimensions = new Vector2();
 
-	protected DecalMaterial material = new DecalMaterial();
+	protected DecalMaterial material;
 	protected boolean updated = false;
 
 	public Decal () {
+		material = new DecalMaterial();
+	}
+
+	/**
+	 * Create a decal with a custom material.
+	 * @param material A material that must have a TextureRegion assigned.
+	 */
+	public Decal (DecalMaterial material) {
+		this.material = material;
 	}
 
 	/** Sets the color of all four vertices to the specified color
@@ -561,6 +570,14 @@ public class Decal {
 	public DecalMaterial getMaterial () {
 		return material;
 	}
+	
+	/**
+	 * Set a custom material for this decal. The material must have a TextureRegion assigned.
+	 * @param material
+	 */
+	public void setMaterial (DecalMaterial material) {
+		this.material = material;
+	}
 
 	final static Vector3 dir = new Vector3();
 
@@ -620,14 +637,12 @@ public class Decal {
 				: DecalMaterial.NO_BLEND);
 	}
 
-	/** Creates a decal using the region for texturing
+	/** Creates a decal with no transparency, using the region for texturing
 	 * 
 	 * @param width Width of the decal in world units
 	 * @param height Height of the decal in world units
 	 * @param textureRegion TextureRegion to use
 	 * @return Created decal */
-	// TODO : it would be convenient if {@link com.badlogic.gdx.graphics.Texture} had a getFormat() method to assume transparency
-// from RGBA,..
 	public static Decal newDecal (float width, float height, TextureRegion textureRegion) {
 		return newDecal(width, height, textureRegion, DecalMaterial.NO_BLEND, DecalMaterial.NO_BLEND);
 	}
@@ -656,6 +671,28 @@ public class Decal {
 		Decal decal = new Decal();
 		decal.setTextureRegion(textureRegion);
 		decal.setBlending(srcBlendFactor, dstBlendFactor);
+		decal.dimensions.x = width;
+		decal.dimensions.y = height;
+		decal.setColor(1, 1, 1, 1);
+		return decal;
+	}
+
+	/** Creates a decal using a custom material, assuming the dimensions of the material's region. The material must already 
+	 * have a TextureRegion assigned.
+	 * @param material A DecalMaterial that must already have a TextureRegion assigned. The TextureRegion's width and height are
+	 *           used for the decal's size in world units.
+	 * @return Created decal  */
+	public static Decal newDecal (DecalMaterial material) {
+		return newDecal(material.textureRegion.getRegionWidth(), material.textureRegion.getRegionHeight(), material);
+	}
+
+	/** Creates a decal using a custom material. The material must already have a TextureRegion assigned.
+	 * @param width Width of the decal in world units
+	 * @param height Height of the decal in world units
+	 * @param material A DecalMaterial that has a TextureRegion assigned.
+	 * @return Created decal */
+	public static Decal newDecal (float width, float height, DecalMaterial material) {
+		Decal decal = new Decal(material);
 		decal.dimensions.x = width;
 		decal.dimensions.y = height;
 		decal.setColor(1, 1, 1, 1);
