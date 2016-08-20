@@ -182,6 +182,8 @@ public class SpriteCacheTest extends GdxTest implements InputProcessor {
 		spriteCacheID = spriteCache.endCache();
 
 		Gdx.input.setInputProcessor(this);
+		
+		Gdx.gl.glEnable(GL20.GL_CULL_FACE); //test sprite winding
 	}
 
 	@Override

@@ -72,11 +72,11 @@ public class EarClippingTriangulator {
 		indicesArray.size = vertexCount;
 		short[] indices = this.indices = indicesArray.items;
 		if (areVerticesClockwise(vertices, offset, count)) {
-			for (short i = 0; i < vertexCount; i++)
-				indices[i] = (short)(vertexOffset + i);
-		} else {
 			for (int i = 0, n = vertexCount - 1; i < vertexCount; i++)
-				indices[i] = (short)(vertexOffset + n - i); // Reversed.
+				indices[i] = (short)(vertexOffset + n - i);
+		} else {
+			for (short i = 0; i < vertexCount; i++)
+				indices[i] = (short)(vertexOffset + i); // Reversed.
 		}
 
 		IntArray vertexTypes = this.vertexTypes;

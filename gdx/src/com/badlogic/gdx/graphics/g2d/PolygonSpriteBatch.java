@@ -375,11 +375,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		// bottom left and top right corner points relative to origin
@@ -398,7 +398,7 @@ public class PolygonSpriteBatch implements Batch {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;
@@ -517,11 +517,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		float u = srcX * invTexWidth;
@@ -586,11 +586,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		final float u = srcX * invTexWidth;
@@ -643,11 +643,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		final float fx2 = x + width;
@@ -701,11 +701,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		final float fx2 = x + width;
@@ -761,11 +761,11 @@ public class PolygonSpriteBatch implements Batch {
 		short vertex = (short)(vertexIndex / VERTEX_SIZE);
 		for (int n = triangleIndex + triangleCount; triangleIndex < n; triangleIndex += 6, vertex += 4) {
 			triangles[triangleIndex] = vertex;
-			triangles[triangleIndex + 1] = (short)(vertex + 1);
-			triangles[triangleIndex + 2] = (short)(vertex + 2);
-			triangles[triangleIndex + 3] = (short)(vertex + 2);
+			triangles[triangleIndex + 1] = (short)(vertex + 2);
+			triangles[triangleIndex + 2] = (short)(vertex + 1);
+			triangles[triangleIndex + 3] = vertex;
 			triangles[triangleIndex + 4] = (short)(vertex + 3);
-			triangles[triangleIndex + 5] = vertex;
+			triangles[triangleIndex + 5] = (short)(vertex + 2);
 		}
 		this.triangleIndex = triangleIndex;
 
@@ -794,11 +794,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		final float fx2 = x + width;
@@ -853,11 +853,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		// bottom left and top right corner points relative to origin
@@ -876,7 +876,7 @@ public class PolygonSpriteBatch implements Batch {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;
@@ -984,11 +984,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		// bottom left and top right corner points relative to origin
@@ -1007,7 +1007,7 @@ public class PolygonSpriteBatch implements Batch {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;
@@ -1130,11 +1130,11 @@ public class PolygonSpriteBatch implements Batch {
 		int triangleIndex = this.triangleIndex;
 		final int startVertex = vertexIndex / VERTEX_SIZE;
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		triangles[triangleIndex++] = (short)(startVertex + 1);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 2);
-		triangles[triangleIndex++] = (short)(startVertex + 3);
 		triangles[triangleIndex++] = (short)startVertex;
+		triangles[triangleIndex++] = (short)(startVertex + 3);
+		triangles[triangleIndex++] = (short)(startVertex + 2);
 		this.triangleIndex = triangleIndex;
 
 		// construct corner points

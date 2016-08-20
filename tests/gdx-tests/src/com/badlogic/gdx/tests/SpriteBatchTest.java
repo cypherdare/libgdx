@@ -218,6 +218,8 @@ public class SpriteBatchTest extends GdxTest implements InputProcessor {
 		}
 
 		Gdx.input.setInputProcessor(this);
+		
+		Gdx.gl.glEnable(GL20.GL_CULL_FACE); //test sprite winding
 	}
 
 	@Override

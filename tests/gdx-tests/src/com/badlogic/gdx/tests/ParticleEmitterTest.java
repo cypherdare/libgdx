@@ -119,6 +119,8 @@ public class ParticleEmitterTest extends GdxTest {
 		};
 
 		Gdx.input.setInputProcessor(inputProcessor);
+		
+		Gdx.gl.glEnable(GL20.GL_CULL_FACE); //test sprite winding
 	}
 
 	@Override

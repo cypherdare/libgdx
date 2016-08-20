@@ -1,4 +1,5 @@
 [1.9.5]
+- API Change: Reversed sprite triangle winding direction, so a sprite's front face is toward the camera with OpenGL's default CCW face winding. No longer need to toggle backface culling repeatedly when mixing 2D/3D.
 
 [1.9.4]
 - Moved snapping from ProgressBar to Slider to prevent snapping when setting the value programmatically.

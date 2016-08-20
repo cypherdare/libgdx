@@ -62,7 +62,7 @@ import com.badlogic.gdx.utils.NumberUtils;
  * <br>
  * SpriteCache is a reasonably heavyweight object. Typically only one instance should be used for an entire application.<br>
  * <br>
- * SpriteCache works with OpenGL ES 1.x and 2.0. For 2.0, it uses its own custom shader to draw.<br>
+ * SpriteCache uses its own custom shader to draw if one isn't provided to its constructor.<br>
  * <br>
  * SpriteCache must be disposed once it is no longer needed.
  * @author Nathan Sweet */
@@ -126,11 +126,11 @@ public class SpriteCache implements Disposable {
 			short j = 0;
 			for (int i = 0; i < length; i += 6, j += 4) {
 				indices[i + 0] = (short)j;
-				indices[i + 1] = (short)(j + 1);
-				indices[i + 2] = (short)(j + 2);
-				indices[i + 3] = (short)(j + 2);
+				indices[i + 1] = (short)(j + 2);
+				indices[i + 2] = (short)(j + 1);
+				indices[i + 3] = j;
 				indices[i + 4] = (short)(j + 3);
-				indices[i + 5] = (short)j;
+				indices[i + 5] = (short)(j + 2);
 			}
 			mesh.setIndices(indices);
 		}
@@ -513,7 +513,7 @@ public class SpriteCache implements Disposable {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;
@@ -718,7 +718,7 @@ public class SpriteCache implements Disposable {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;

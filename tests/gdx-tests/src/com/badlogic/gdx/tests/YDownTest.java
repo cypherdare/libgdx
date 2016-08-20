@@ -81,6 +81,9 @@ public class YDownTest extends GdxTest {
 
 		// finally we write up the stage as the input process and call it a day.
 		Gdx.input.setInputProcessor(stage);
+		
+		Gdx.gl.glEnable(GL20.GL_CULL_FACE); //test triangle winding
+		Gdx.gl.glFrontFace(GL20.GL_CW); //up-side down camera needs reverse winding
 	}
 
 	@Override

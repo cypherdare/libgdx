@@ -111,11 +111,11 @@ public class SpriteBatch implements Batch {
 		short j = 0;
 		for (int i = 0; i < len; i += 6, j += 4) {
 			indices[i] = j;
-			indices[i + 1] = (short)(j + 1);
-			indices[i + 2] = (short)(j + 2);
-			indices[i + 3] = (short)(j + 2);
+			indices[i + 1] = (short)(j + 2);
+			indices[i + 2] = (short)(j + 1);
+			indices[i + 3] = j;
 			indices[i + 4] = (short)(j + 3);
-			indices[i + 5] = j;
+			indices[i + 5] = (short)(j + 2);
 		}
 		mesh.setIndices(indices);
 
@@ -253,7 +253,7 @@ public class SpriteBatch implements Batch {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;
@@ -665,7 +665,7 @@ public class SpriteBatch implements Batch {
 			fy2 *= scaleY;
 		}
 
-		// construct corner points, start from top left and go counter clockwise
+		// construct corner points, start from bottom left and go clockwise
 		final float p1x = fx;
 		final float p1y = fy;
 		final float p2x = fx;
