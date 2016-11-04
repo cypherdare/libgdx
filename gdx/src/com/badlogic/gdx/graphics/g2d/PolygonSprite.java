@@ -36,8 +36,7 @@ public class PolygonSprite {
 	private final Color color = new Color(1f, 1f, 1f, 1f);
 
 	public PolygonSprite (PolygonRegion region) {
-		setRegion(region);
-		setColor(1, 1, 1, 1);
+		setRegion(region); // this call also applies the default color
 		setSize(region.region.regionWidth, region.region.regionHeight);
 		setOrigin(width / 2, height / 2);
 	}
@@ -61,8 +60,9 @@ public class PolygonSprite {
 		rotation = sprite.rotation;
 		scaleX = sprite.scaleX;
 		scaleY = sprite.scaleY;
-		color.set(sprite.color);
-		dirty = sprite.dirty;
+		setColor(sprite.color);
+		
+		dirty = true; // since vertices aren't copied, it's always dirty.
 	}
 
 	/** Sets the position and size of the sprite when drawn, before scaling and rotation are applied. If origin, rotation, or scale
@@ -265,13 +265,17 @@ public class PolygonSprite {
 	}
 
 	public void draw (PolygonSpriteBatch spriteBatch, float alphaModulation) {
-		Color color = getColor();
-		float oldAlpha = color.a;
-		color.a *= alphaModulation;
-		setColor(color);
+		float oldColor = vertices[2];
+		int abgr = NumberUtils.floatToIntColor(oldColor);
+		int a = Math.round(((abgr & 0xff000000) >>> 24) * alphaModulation) & 0xff;
+		float color = NumberUtils.intToFloatColor((abgr & 0x00ffffff) | (a << 24));
+		for (int i = 2; i < vertices.length; i += Sprite.VERTEX_SIZE)
+			vertices[i] = color;
+		
 		draw(spriteBatch);
-		color.a = oldAlpha;
-		setColor(color);
+		
+		for (int i = 2; i < vertices.length; i += Sprite.VERTEX_SIZE)
+			vertices[i] = oldColor;
 	}
 
 	public float getX () {
@@ -310,13 +314,13 @@ public class PolygonSprite {
 		return scaleY;
 	}
 
-	/** Returns the color of this sprite. Changing the returned color will have no affect, {@link #setColor(Color)} or
+	/** Returns the color of this sprite. Changing the returned color will have no effect, {@link #setColor(Color)} or
 	 * {@link #setColor(float, float, float, float)} must be used. */
 	public Color getColor () {
 		return color;
 	}
 
-	/** Returns the actual color used in the vertices of this sprite. Changing the returned color will have no affect,
+	/** Returns the actual color used in the vertices of this sprite. Changing the returned color will have no effect,
 	 * {@link #setColor(Color)} or {@link #setColor(float, float, float, float)} must be used. */
 	public Color getVertexColor () {
 		int intBits = NumberUtils.floatToIntColor(vertices[2]);
@@ -333,13 +337,16 @@ public class PolygonSprite {
 
 		float[] regionVertices = region.vertices;
 		float[] textureCoords = region.textureCoords;
+		
+		// Use vertex color if available in case user tried to modify Color instance.
+		float floatColor = vertices == null ? color.toFloatBits() : vertices[2];
 
 		if (vertices == null || regionVertices.length != vertices.length) vertices = new float[(regionVertices.length / 2) * 5];
 
 		// Set the color and UVs in this sprite's vertices.
 		float[] vertices = this.vertices;
 		for (int i = 0, v = 2, n = regionVertices.length; i < n; i += 2, v += 5) {
-			vertices[v] = color.toFloatBits();
+			vertices[v] = floatColor;
 			vertices[v + 1] = textureCoords[i];
 			vertices[v + 2] = textureCoords[i + 1];
 		}
