@@ -199,10 +199,10 @@ public interface Batch extends Disposable {
 	/** Sets the transform matrix to be used by this Batch. */
 	public void setTransformMatrix (Matrix4 transform);
 
-	/** Sets the shader to be used in a GLES 2.0 environment. Vertex position attribute is called "a_position", the texture
-	 * coordinates attribute is called "a_texCoord0", the color attribute is called "a_color". See
-	 * {@link ShaderProgram#POSITION_ATTRIBUTE}, {@link ShaderProgram#COLOR_ATTRIBUTE} and {@link ShaderProgram#TEXCOORD_ATTRIBUTE}
-	 * which gets "0" appended to indicate the use of the first texture unit. The combined transform and projection matrx is
+	/** Sets the shader. Vertex position attribute is called "a_position", the color attribute is called "a_color", and the texture
+	 * coordinates attribute is called "a_texCoord0". See {@link ShaderProgram#POSITION_ATTRIBUTE}, 
+	 * {@link ShaderProgram#COLOR_ATTRIBUTE} and {@link ShaderProgram#TEXCOORD_ATTRIBUTE},
+	 * which gets "0" appended to indicate the use of the first texture unit. The combined transform and projection matrix is
 	 * uploaded via a mat4 uniform called "u_projTrans". The texture sampler is passed via a uniform called "u_texture".
 	 * <p>
 	 * Call this method with a null argument to use the default shader.
