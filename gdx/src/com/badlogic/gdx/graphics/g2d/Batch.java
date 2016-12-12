@@ -17,7 +17,7 @@
 package com.badlogic.gdx.graphics.g2d;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.Matrix4;
@@ -76,7 +76,7 @@ public interface Batch extends Disposable {
 	/** Draws a rectangle with the bottom left corner at x,y having the given width and height in pixels. The rectangle is offset by
 	 * originX, originY relative to the origin. Scale specifies the scaling factor by which the rectangle should be scaled around
 	 * originX, originY. Rotation specifies the angle of counter clockwise rotation of the rectangle around originX, originY. The
-	 * portion of the {@link Texture} given by srcX, srcY and srcWidth, srcHeight is used. These coordinates and sizes are given in
+	 * portion of the {@link GLTexture} given by srcX, srcY and srcWidth, srcHeight is used. These coordinates and sizes are given in
 	 * texels. FlipX and flipY specify whether the texture portion should be flipped horizontally or vertically.
 	 * @param x the x-coordinate in screen space
 	 * @param y the y-coordinate in screen space
@@ -93,11 +93,11 @@ public interface Batch extends Disposable {
 	 * @param srcHeight the source height in texels
 	 * @param flipX whether to flip the sprite horizontally
 	 * @param flipY whether to flip the sprite vertically */
-	public void draw (Texture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
+	public void draw (GLTexture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
 		float scaleY, float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY);
 
 	/** Draws a rectangle with the bottom left corner at x,y having the given width and height in pixels. The portion of the
-	 * {@link Texture} given by srcX, srcY and srcWidth, srcHeight is used. These coordinates and sizes are given in texels. FlipX
+	 * {@link GLTexture} given by srcX, srcY and srcWidth, srcHeight is used. These coordinates and sizes are given in texels. FlipX
 	 * and flipY specify whether the texture portion should be flipped horizontally or vertically.
 	 * @param x the x-coordinate in screen space
 	 * @param y the y-coordinate in screen space
@@ -109,39 +109,39 @@ public interface Batch extends Disposable {
 	 * @param srcHeight the source height in texels
 	 * @param flipX whether to flip the sprite horizontally
 	 * @param flipY whether to flip the sprite vertically */
-	public void draw (Texture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
+	public void draw (GLTexture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
 		int srcHeight, boolean flipX, boolean flipY);
 
 	/** Draws a rectangle with the bottom left corner at x,y having the given width and height in pixels. The portion of the
-	 * {@link Texture} given by srcX, srcY and srcWidth, srcHeight are used. These coordinates and sizes are given in texels.
+	 * {@link GLTexture} given by srcX, srcY and srcWidth, srcHeight are used. These coordinates and sizes are given in texels.
 	 * @param x the x-coordinate in screen space
 	 * @param y the y-coordinate in screen space
 	 * @param srcX the x-coordinate in texel space
 	 * @param srcY the y-coordinate in texel space
 	 * @param srcWidth the source with in texels
 	 * @param srcHeight the source height in texels */
-	public void draw (Texture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight);
+	public void draw (GLTexture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight);
 
 	/** Draws a rectangle with the bottom left corner at x,y having the given width and height in pixels. The portion of the
-	 * {@link Texture} given by u, v and u2, v2 are used. These coordinates and sizes are given in texture size percentage. The
+	 * {@link GLTexture} given by u, v and u2, v2 are used. These coordinates and sizes are given in texture size percentage. The
 	 * rectangle will have the given tint {@link Color}.
 	 * @param x the x-coordinate in screen space
 	 * @param y the y-coordinate in screen space
 	 * @param width the width in pixels
 	 * @param height the height in pixels */
-	public void draw (Texture texture, float x, float y, float width, float height, float u, float v, float u2, float v2);
+	public void draw (GLTexture texture, float x, float y, float width, float height, float u, float v, float u2, float v2);
 
 	/** Draws a rectangle with the bottom left corner at x,y having the width and height of the texture.
 	 * @param x the x-coordinate in screen space
 	 * @param y the y-coordinate in screen space */
-	public void draw (Texture texture, float x, float y);
+	public void draw (GLTexture texture, float x, float y);
 
 	/** Draws a rectangle with the bottom left corner at x,y and stretching the region to cover the given width and height. */
-	public void draw (Texture texture, float x, float y, float width, float height);
+	public void draw (GLTexture texture, float x, float y, float width, float height);
 
 	/** Draws a rectangle using the given vertices. There must be 4 vertices, each made up of 5 elements in this order: x, y, color,
 	 * u, v. The {@link #getColor()} from the Batch is not applied. */
-	public void draw (Texture texture, float[] spriteVertices, int offset, int count);
+	public void draw (GLTexture texture, float[] spriteVertices, int offset, int count);
 
 	/** Draws a rectangle with the bottom left corner at x,y having the width and height of the region. */
 	public void draw (TextureRegion region, float x, float y);

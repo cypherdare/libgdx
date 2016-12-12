@@ -29,6 +29,8 @@
 - API Change: DragAndDrop now puts default position of drag actor at pointer location. The original default offset from the pointer was (14, -20).
 - Added ShaderProgramLoader for AssetManager.
 - BoundingBox#isValid now returns also true when min==max, see: https://github.com/libgdx/libgdx/pull/4460
+- API Change: TextureAtlasData definition moved into GLTextureAtlas. You may need to update imports for TextureAtlasData and associated Pages and Regions.
+- New TextureArrayRegion and TextureArrayAtlas classes.
 
 [1.9.4]
 - Moved snapping from ProgressBar to Slider to prevent snapping when setting the value programmatically.

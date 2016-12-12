@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -64,9 +65,9 @@ public class TextureAtlasPanel extends JPanel {
 		 Array<AtlasRegion> atlasRegions = atlas.getRegions();
 		 CustomCardLayout layout = (CustomCardLayout)regionsPanel.getLayout();
 		Array<TextureRegion> regions = new Array<TextureRegion>();
-		for(Texture texture : atlas.getTextures()){
-			FileTextureData file = (FileTextureData)texture.getTextureData();
-			regionsPanel.add(new TexturePanel( texture, getRegions(texture, atlasRegions, regions)));
+		for(GLTexture texture : atlas.getTextures()){
+			FileTextureData file = (FileTextureData)((Texture)texture).getTextureData();
+			regionsPanel.add(new TexturePanel((Texture)texture, getRegions((Texture)texture, atlasRegions, regions)));
 		}
 		layout.first(regionsPanel);
 		this.atlas = atlas;

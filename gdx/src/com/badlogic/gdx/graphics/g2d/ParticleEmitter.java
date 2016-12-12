@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -603,7 +603,7 @@ public class ParticleEmitter {
 		if (sprite == null) return;
 		float originX = sprite.getOriginX();
 		float originY = sprite.getOriginY();
-		Texture texture = sprite.getTexture();
+		GLTexture texture = sprite.getTexture();
 		for (int i = 0, n = particles.length; i < n; i++) {
 			Particle particle = particles[i];
 			if (particle == null) break;

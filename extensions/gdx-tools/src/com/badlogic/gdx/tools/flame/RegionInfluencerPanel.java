@@ -9,6 +9,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.particles.influencers.RegionInfluencer;
@@ -68,7 +69,7 @@ public class RegionInfluencerPanel extends InfluencerPanel<RegionInfluencer> imp
 		if(regions.size == 0) return;
 		value.clear();
 		value.add((TextureRegion[])regions.toArray(TextureRegion.class));
-		editor.setTexture(regions.get(0).getTexture());
+		editor.setTexture((Texture)regions.get(0).getTexture());
 		editor.restart();
 	}
 

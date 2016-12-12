@@ -17,7 +17,7 @@
 package com.badlogic.gdx.scenes.scene2d.utils;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
@@ -56,7 +56,7 @@ public class TiledDrawable extends TextureRegionDrawable {
 			}
 			x += regionWidth;
 		}
-		Texture texture = region.getTexture();
+		GLTexture texture = region.getTexture();
 		float u = region.getU();
 		float v2 = region.getV2();
 		if (remainingX > 0) {

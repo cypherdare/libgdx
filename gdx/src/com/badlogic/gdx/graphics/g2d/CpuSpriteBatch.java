@@ -16,7 +16,7 @@
 
 package com.badlogic.gdx.graphics.g2d;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.MathUtils;
@@ -148,7 +148,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
+	public void draw (GLTexture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
 		float scaleY, float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY) {
 		if (!adjustNeeded) {
 			super.draw(texture, x, y, originX, originY, width, height, scaleX, scaleY, rotation, srcX, srcY, srcWidth, srcHeight,
@@ -160,7 +160,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
+	public void draw (GLTexture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
 		int srcHeight, boolean flipX, boolean flipY) {
 		if (!adjustNeeded) {
 			super.draw(texture, x, y, width, height, srcX, srcY, srcWidth, srcHeight, flipX, flipY);
@@ -170,7 +170,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight) {
+	public void draw (GLTexture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight) {
 		if (!adjustNeeded) {
 			super.draw(texture, x, y, srcX, srcY, srcWidth, srcHeight);
 		} else {
@@ -180,7 +180,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float width, float height, float u, float v, float u2, float v2) {
+	public void draw (GLTexture texture, float x, float y, float width, float height, float u, float v, float u2, float v2) {
 		if (!adjustNeeded) {
 			super.draw(texture, x, y, width, height, u, v, u2, v2);
 		} else {
@@ -189,7 +189,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y) {
+	public void draw (GLTexture texture, float x, float y) {
 		if (!adjustNeeded) {
 			super.draw(texture, x, y);
 		} else {
@@ -198,7 +198,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float width, float height) {
+	public void draw (GLTexture texture, float x, float y, float width, float height) {
 		if (!adjustNeeded) {
 			super.draw(texture, x, y, width, height);
 		} else {
@@ -245,7 +245,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 	}
 
 	@Override
-	public void draw (Texture texture, float[] spriteVertices, int offset, int count) {
+	public void draw (GLTexture texture, float[] spriteVertices, int offset, int count) {
 		if (count % Sprite.SPRITE_SIZE != 0) throw new GdxRuntimeException("invalid vertex count");
 
 		if (!adjustNeeded) {
@@ -271,7 +271,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 			region.u2, region.v, false, false);
 	}
 
-	private void drawAdjusted (Texture texture, float x, float y, float originX, float originY, float width, float height,
+	private void drawAdjusted (GLTexture texture, float x, float y, float originX, float originY, float width, float height,
 		float scaleX, float scaleY, float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY) {
 		float invTexWidth = 1.0f / texture.getWidth();
 		float invTexHeight = 1.0f / texture.getHeight();
@@ -284,7 +284,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 		drawAdjustedUV(texture, x, y, originX, originY, width, height, scaleX, scaleY, rotation, u, v, u2, v2, flipX, flipY);
 	}
 
-	private void drawAdjustedUV (Texture texture, float x, float y, float originX, float originY, float width, float height,
+	private void drawAdjustedUV (GLTexture texture, float x, float y, float originX, float originY, float width, float height,
 		float scaleX, float scaleY, float rotation, float u, float v, float u2, float v2, boolean flipX, boolean flipY) {
 		if (!drawing) throw new IllegalStateException("CpuSpriteBatch.begin must be called before draw.");
 
@@ -592,7 +592,7 @@ public class CpuSpriteBatch extends SpriteBatch {
 		idx += Sprite.SPRITE_SIZE;
 	}
 
-	private void drawAdjusted (Texture texture, float[] spriteVertices, int offset, int count) {
+	private void drawAdjusted (GLTexture texture, float[] spriteVertices, int offset, int count) {
 		if (!drawing) throw new IllegalStateException("CpuSpriteBatch.begin must be called before draw.");
 
 		if (texture != lastTexture) switchTexture(texture);

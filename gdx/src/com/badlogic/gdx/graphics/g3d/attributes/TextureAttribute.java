@@ -153,7 +153,7 @@ public class TextureAttribute extends Attribute {
 			copyFrom.uvIndex);
 	}
 
-	public void set (final TextureRegion region) {
+	public void set (final TextureRegion<Texture> region) {
 		textureDescription.texture = region.getTexture();
 		offsetU = region.getU();
 		offsetV = region.getV();

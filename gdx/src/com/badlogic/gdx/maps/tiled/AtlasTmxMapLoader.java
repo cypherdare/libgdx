@@ -26,7 +26,7 @@ import com.badlogic.gdx.assets.loaders.AsynchronousAssetLoader;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -65,7 +65,7 @@ public class AtlasTmxMapLoader extends BaseTmxMapLoader<AtlasTmxMapLoader.AtlasT
 		public boolean forceTextureFilters = false;
 	}
 
-	protected Array<Texture> trackedTextures = new Array<Texture>();
+	protected Array<GLTexture> trackedTextures = new Array<GLTexture>();
 
 	private interface AtlasResolver {
 
@@ -193,7 +193,7 @@ public class AtlasTmxMapLoader extends BaseTmxMapLoader<AtlasTmxMapLoader.AtlasT
 	}
 
 	private void setTextureFilters (TextureFilter min, TextureFilter mag) {
-		for (Texture texture : trackedTextures) {
+		for (GLTexture texture : trackedTextures) {
 			texture.setFilter(min, mag);
 		}
 		trackedTextures.clear();
@@ -350,7 +350,7 @@ public class AtlasTmxMapLoader extends BaseTmxMapLoader<AtlasTmxMapLoader.AtlasT
 			TextureAtlas atlas = resolver.getAtlas(atlasHandle.path());
 			String regionsName = name;
 
-			for (Texture texture : atlas.getTextures()) {
+			for (GLTexture texture : atlas.getTextures()) {
 				trackedTextures.add(texture);
 			}
 

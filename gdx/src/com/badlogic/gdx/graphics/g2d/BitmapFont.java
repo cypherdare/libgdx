@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout.GlyphRun;
@@ -671,7 +672,7 @@ public class BitmapFont implements Disposable {
 		}
 
 		public void setGlyphRegion (Glyph glyph, TextureRegion region) {
-			Texture texture = region.getTexture();
+			GLTexture texture = region.getTexture();
 			float invTexWidth = 1.0f / texture.getWidth();
 			float invTexHeight = 1.0f / texture.getHeight();
 

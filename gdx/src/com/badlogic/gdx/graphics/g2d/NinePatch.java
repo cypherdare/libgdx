@@ -17,7 +17,7 @@
 package com.badlogic.gdx.graphics.g2d;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
@@ -29,7 +29,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
  * <b>NOTE</b>: This class expects a "post-processed" nine-patch, and not a raw ".9.png" texture. That is, the textures given to
  * this class should <em>not</em> include the meta-data pixels from a ".9.png" that describe the layout of the ninepatch over the
  * interior of the graphic. That information should be passed into the constructor either implicitly as the size of the individual
- * patch textures, or via the <code>left, right, top, bottom</code> parameters to {@link #NinePatch(Texture, int, int, int, int)}
+ * patch textures, or via the <code>left, right, top, bottom</code> parameters to {@link #NinePatch(GLTexture, int, int, int, int)}
  * or {@link #NinePatch(TextureRegion, int, int, int, int)}.
  * 
  * <p>
@@ -49,7 +49,7 @@ public class NinePatch {
 
 	static private final Color tmpDrawColor = new Color();
 
-	private Texture texture;
+	private GLTexture texture;
 	private int bottomLeft = -1, bottomCenter = -1, bottomRight = -1;
 	private int middleLeft = -1, middleCenter = -1, middleRight = -1;
 	private int topLeft = -1, topCenter = -1, topRight = -1;
@@ -66,7 +66,7 @@ public class NinePatch {
 	 * @param right Pixels from right edge.
 	 * @param top Pixels from top edge.
 	 * @param bottom Pixels from bottom edge. */
-	public NinePatch (Texture texture, int left, int right, int top, int bottom) {
+	public NinePatch (GLTexture texture, int left, int right, int top, int bottom) {
 		this(new TextureRegion(texture), left, right, top, bottom);
 	}
 
@@ -122,13 +122,13 @@ public class NinePatch {
 	}
 
 	/** Construct a degenerate "nine" patch with only a center component. */
-	public NinePatch (Texture texture, Color color) {
+	public NinePatch (GLTexture texture, Color color) {
 		this(texture);
 		setColor(color);
 	}
 
 	/** Construct a degenerate "nine" patch with only a center component. */
-	public NinePatch (Texture texture) {
+	public NinePatch (GLTexture texture) {
 		this(new TextureRegion(texture));
 	}
 
@@ -532,7 +532,7 @@ public class NinePatch {
 		if (padBottom != -1) padBottom *= scaleY;
 	}
 
-	public Texture getTexture () {
+	public GLTexture getTexture () {
 		return texture;
 	}
 }

@@ -897,7 +897,7 @@ public class FlameMain extends JFrame implements AssetErrorListener {
 	
 	public void setAtlas(TextureAtlas atlas){
 		//currentAtlas = atlas;
-		setTexture(atlas.getTextures().first());
+		setTexture((Texture)atlas.getTextures().first());
 	}
 	
 	public void setTexture(Texture texture){

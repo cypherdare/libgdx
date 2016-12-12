@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Mesh.VertexDataType;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -43,7 +43,7 @@ public class SpriteBatch implements Batch {
 
 	final float[] vertices;
 	int idx = 0;
-	Texture lastTexture = null;
+	GLTexture lastTexture = null;
 	float invTexWidth = 0, invTexHeight = 0;
 
 	boolean drawing = false;
@@ -227,7 +227,7 @@ public class SpriteBatch implements Batch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
+	public void draw (GLTexture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
 		float scaleY, float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY) {
 		if (!drawing) throw new IllegalStateException("SpriteBatch.begin must be called before draw.");
 
@@ -358,7 +358,7 @@ public class SpriteBatch implements Batch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
+	public void draw (GLTexture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
 		int srcHeight, boolean flipX, boolean flipY) {
 		if (!drawing) throw new IllegalStateException("SpriteBatch.begin must be called before draw.");
 
@@ -417,7 +417,7 @@ public class SpriteBatch implements Batch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight) {
+	public void draw (GLTexture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight) {
 		if (!drawing) throw new IllegalStateException("SpriteBatch.begin must be called before draw.");
 
 		float[] vertices = this.vertices;
@@ -463,7 +463,7 @@ public class SpriteBatch implements Batch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float width, float height, float u, float v, float u2, float v2) {
+	public void draw (GLTexture texture, float x, float y, float width, float height, float u, float v, float u2, float v2) {
 		if (!drawing) throw new IllegalStateException("SpriteBatch.begin must be called before draw.");
 
 		float[] vertices = this.vertices;
@@ -505,12 +505,12 @@ public class SpriteBatch implements Batch {
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y) {
+	public void draw (GLTexture texture, float x, float y) {
 		draw(texture, x, y, texture.getWidth(), texture.getHeight());
 	}
 
 	@Override
-	public void draw (Texture texture, float x, float y, float width, float height) {
+	public void draw (GLTexture texture, float x, float y, float width, float height) {
 		if (!drawing) throw new IllegalStateException("SpriteBatch.begin must be called before draw.");
 
 		float[] vertices = this.vertices;
@@ -556,7 +556,7 @@ public class SpriteBatch implements Batch {
 	}
 
 	@Override
-	public void draw (Texture texture, float[] spriteVertices, int offset, int count) {
+	public void draw (GLTexture texture, float[] spriteVertices, int offset, int count) {
 		if (!drawing) throw new IllegalStateException("SpriteBatch.begin must be called before draw.");
 
 		int verticesLength = vertices.length;
@@ -596,7 +596,7 @@ public class SpriteBatch implements Batch {
 
 		float[] vertices = this.vertices;
 
-		Texture texture = region.texture;
+		GLTexture texture = region.texture;
 		if (texture != lastTexture) {
 			switchTexture(texture);
 		} else if (idx == vertices.length) //
@@ -644,7 +644,7 @@ public class SpriteBatch implements Batch {
 
 		float[] vertices = this.vertices;
 
-		Texture texture = region.texture;
+		GLTexture texture = region.texture;
 		if (texture != lastTexture) {
 			switchTexture(texture);
 		} else if (idx == vertices.length) //
@@ -764,7 +764,7 @@ public class SpriteBatch implements Batch {
 
 		float[] vertices = this.vertices;
 
-		Texture texture = region.texture;
+		GLTexture texture = region.texture;
 		if (texture != lastTexture) {
 			switchTexture(texture);
 		} else if (idx == vertices.length) //
@@ -899,7 +899,7 @@ public class SpriteBatch implements Batch {
 
 		float[] vertices = this.vertices;
 
-		Texture texture = region.texture;
+		GLTexture texture = region.texture;
 		if (texture != lastTexture) {
 			switchTexture(texture);
 		} else if (idx == vertices.length) {
@@ -1050,7 +1050,7 @@ public class SpriteBatch implements Batch {
 		}
 	}
 
-	protected void switchTexture (Texture texture) {
+	protected void switchTexture (GLTexture texture) {
 		flush();
 		lastTexture = texture;
 		invTexWidth = 1.0f / texture.getWidth();

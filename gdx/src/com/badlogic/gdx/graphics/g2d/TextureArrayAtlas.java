@@ -19,20 +19,29 @@ package com.badlogic.gdx.graphics.g2d;
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.TextureArray;
-import com.badlogic.gdx.graphics.g2d.GLTextureAtlas.TextureAtlasData;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.TextureAtlasData;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.TextureAtlasData.Page;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.TextureAtlasData.Region;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectIntMap;
+import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.ObjectSet;
 
-/** Loads images from texture atlases created by TexturePacker. Any pages that have the same size, mip mapping, filters, and wrapping
- * will share a single TextureArray, with each page's image on a different layer.
+/** A {@link TextureAtlas} that uses {@link TextureArray TextureArrays} to reduce the number of GLTextures used. Usable only in a
+ * GL30 context. Any pages that have the same size, mip mapping, filters, and wrapping will share a single TextureArray. Returned
+ * AtlasRegions have the array layer baked into the texture coordinates by default.
  * <p>
  * A TextureArrayAtlas must be disposed to free up the resources consumed by the backing textures.
- * <p>
- * TextureArrayAtlas can only be used in a GL 3.0 context.
- * @author Nathan Sweet, cypherdare */
-public class TextureArrayAtlas extends GLTextureAtlas<TextureArray, com.badlogic.gdx.graphics.g2d.TextureArrayAtlas.ArrayAtlasRegion> {
+ * @author cypherdare */
+public class TextureArrayAtlas extends TextureAtlas {
 	
+	private ObjectIntMap<Page> pagesToLayers;
+
 	/** Creates an empty atlas to which regions can be added. */
 	public TextureArrayAtlas () {
 	}
@@ -65,134 +74,69 @@ public class TextureArrayAtlas extends GLTextureAtlas<TextureArray, com.badlogic
 
 	/** @param data May be null. */
 	public TextureArrayAtlas (TextureAtlasData data) {
-		super(data, true);
-	}
-	
-	@Override
-	protected TextureArray loadTexture (Pixmap.Format format, boolean useMipMaps, FileHandle... file){
-		return new TextureArray(useMipMaps, format, file);
+		super(data);
 	}
 
 	@Override
-	protected ArrayAtlasRegion makeAtlasRegion (TextureArray texture, int layer, int x, int y, int width, int height, int index, String name,
-		float offsetX, float offsetY, int packedWidth, int packedHeight, int originalWidth, int originalHeight, boolean rotate,
-		int[] splits, int[] pads) {
-		ArrayAtlasRegion atlasRegion = new ArrayAtlasRegion(texture, layer, x, y, width, height);
-		atlasRegion.index = index;
-		atlasRegion.name = name;
-		atlasRegion.offsetX = offsetX;
-		atlasRegion.offsetY = offsetY;
-		atlasRegion.originalHeight = originalHeight;
-		atlasRegion.originalWidth = originalWidth;
-		atlasRegion.rotate = rotate;
-		atlasRegion.splits = splits;
-		atlasRegion.pads = pads;
+	protected ObjectMap<Page, GLTexture> readPagesToTextures (TextureAtlasData data) {
+		ObjectMap<Page, GLTexture> pageToTexture = new ObjectMap<Page, GLTexture>();
+		
+		// Group pages that can share a texture array
+		ObjectSet<Array<Page>> pageArrays = new ObjectSet<Array<Page>>(); 
+		for (Page page : data.pages) {
+			Array<Page> compatiblePages = null;
+			for (Array<Page> pageArray : pageArrays) {
+				if (canPagesShareTextureArray(pageArray.first(), page)) {
+					compatiblePages = pageArray;
+					break;
+				}
+			}
+			if (compatiblePages == null) {
+				compatiblePages = new Array<Page>(4);
+				pageArrays.add(compatiblePages);
+			}
+			compatiblePages.add(page);
+		}
+		
+		pagesToLayers = new ObjectIntMap<Page>();
+		for (Array<Page> pageArray : pageArrays) {
+			Array<FileHandle> files = new Array<FileHandle>(true, pageArray.size, FileHandle.class);
+			for (int i = 0; i < pageArray.size; i++) {
+				Page page = pageArray.get(i);
+				files.add(page.textureFile);
+				pagesToLayers.put(page, i);
+			}
+			Page templatePage = pageArray.first();
+			GLTexture texture;
+			if (templatePage.texture == null) {
+				texture = new TextureArray(templatePage.useMipMaps, templatePage.format, files.toArray());
+				texture.setFilter(templatePage.minFilter, templatePage.magFilter);
+				texture.setWrap(templatePage.uWrap, templatePage.vWrap);
+			} else {
+				texture = templatePage.texture;
+				texture.setFilter(templatePage.minFilter, templatePage.magFilter);
+				texture.setWrap(templatePage.uWrap, templatePage.vWrap);
+			}
+			textures.add(texture);
+			for (Page page : pageArray)
+				pageToTexture.put(page, texture);
+		}
+		return pageToTexture;
+	}
+
+	@Override
+	protected AtlasRegion generateAtlasRegionFromData (Region region, GLTexture texture) {
+		AtlasRegion atlasRegion = super.generateAtlasRegionFromData(region, texture);
+		int layer = pagesToLayers.get(region.page, 0);
+		atlasRegion.setLayer(layer);
+		atlasRegion.setLayerBaked(true);
 		return atlasRegion;
 	}
-
-	@Override
-	protected ArrayAtlasRegion copyAtlasRegion (ArrayAtlasRegion region) {
-		return new ArrayAtlasRegion(region);
-	}
 	
-	/** Adds a region to the atlas. The specified texture will be disposed when the atlas is disposed. */
-	public ArrayAtlasRegion addRegion (String name, TextureArrayRegion textureRegion) {
-		return addRegion(name, textureRegion.texture, textureRegion.getRegionX(), textureRegion.getRegionY(),
-			textureRegion.getRegionWidth(), textureRegion.getRegionHeight());
-	}
-
-	/** Describes the region of a packed image and provides information about the original image before it was packed. */
-	static public class ArrayAtlasRegion extends TextureArrayRegion {
-		/** The number at the end of the original image file name, or -1 if none.<br>
-		 * <br>
-		 * When sprites are packed, if the original file name ends with a number, it is stored as the index and is not considered as
-		 * part of the sprite's name. This is useful for keeping animation frames in order.
-		 * @see TextureArrayAtlas#findRegions(String) */
-		public int index;
-
-		/** The name of the original image file, up to the first underscore. Underscores denote special instructions to the texture
-		 * packer. */
-		public String name;
-
-		/** The offset from the left of the original image to the left of the packed image, after whitespace was removed for packing. */
-		public float offsetX;
-
-		/** The offset from the bottom of the original image to the bottom of the packed image, after whitespace was removed for
-		 * packing. */
-		public float offsetY;
-
-		/** The width of the image, after whitespace was removed for packing. */
-		public int packedWidth;
-
-		/** The height of the image, after whitespace was removed for packing. */
-		public int packedHeight;
-
-		/** The width of the image, before whitespace was removed and rotation was applied for packing. */
-		public int originalWidth;
-
-		/** The height of the image, before whitespace was removed for packing. */
-		public int originalHeight;
-
-		/** If true, the region has been rotated 90 degrees counter clockwise. */
-		public boolean rotate;
-
-		/** The ninepatch splits, or null if not a ninepatch. Has 4 elements: left, right, top, bottom. */
-		public int[] splits;
-
-		/** The ninepatch pads, or null if not a ninepatch or the has no padding. Has 4 elements: left, right, top, bottom. */
-		public int[] pads;
-
-		public ArrayAtlasRegion (TextureArray texture, int layer, int x, int y, int width, int height) {
-			super(texture, layer, x, y, width, height);
-			originalWidth = width;
-			originalHeight = height;
-			packedWidth = width;
-			packedHeight = height;
-		}
-
-		public ArrayAtlasRegion (ArrayAtlasRegion region) {
-			setRegion(region);
-			index = region.index;
-			name = region.name;
-			offsetX = region.offsetX;
-			offsetY = region.offsetY;
-			packedWidth = region.packedWidth;
-			packedHeight = region.packedHeight;
-			originalWidth = region.originalWidth;
-			originalHeight = region.originalHeight;
-			rotate = region.rotate;
-			splits = region.splits;
-		}
-
-		@Override
-		/** Flips the region, adjusting the offset so the image appears to be flipped as if no whitespace has been removed for packing. */
-		public void flip (boolean x, boolean y) {
-			super.flip(x, y);
-			if (x) offsetX = originalWidth - offsetX - getRotatedPackedWidth();
-			if (y) offsetY = originalHeight - offsetY - getRotatedPackedHeight();
-		}
-
-		/** Returns the packed width considering the rotate value, if it is true then it returns the packedHeight, otherwise it
-		 * returns the packedWidth. */
-		public float getRotatedPackedWidth () {
-			return rotate ? packedHeight : packedWidth;
-		}
-
-		/** Returns the packed height considering the rotate value, if it is true then it returns the packedWidth, otherwise it
-		 * returns the packedHeight. */
-		public float getRotatedPackedHeight () {
-			return rotate ? packedWidth : packedHeight;
-		}
-
-		/** @return The name of the region, usually the original file name of the source image for the region, with any trailing number removed. */
-		public String toString () {
-			return name;
-		}
-
-		@Override
-		public int getIndex () {
-			return index;
-		}
+	private boolean canPagesShareTextureArray (Page page0, Page page1){
+		return page0.texture == null && page1.texture == null && page0.width == page1.width && page0.height == page1.height
+			&& page0.useMipMaps == page1.useMipMaps && page0.minFilter == page1.minFilter && page0.magFilter == page1.magFilter
+			&& page0.uWrap == page1.uWrap && page0.vWrap == page1.vWrap;
 	}
 
 }

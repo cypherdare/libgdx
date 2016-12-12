@@ -141,7 +141,7 @@ public class GlyphPage {
 		if (unicodeFont.getRenderType() == RenderType.FreeType && unicodeFont.bitmapFont != null) {
 			BitmapFontData data = unicodeFont.bitmapFont.getData();
 			BitmapFont.Glyph g = data.getGlyph((char)glyph.getCodePoint());
-			Pixmap fontPixmap = unicodeFont.bitmapFont.getRegions().get(g.page).getTexture().getTextureData().consumePixmap();
+			Pixmap fontPixmap = ((Texture)unicodeFont.bitmapFont.getRegions().get(g.page).getTexture()).getTextureData().consumePixmap();
 
 			int fontWidth = fontPixmap.getWidth();
 			int padTop = unicodeFont.getPaddingTop(), padBottom = unicodeFont.getPaddingBottom();

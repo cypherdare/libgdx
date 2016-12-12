@@ -26,7 +26,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -42,7 +42,7 @@ import com.badlogic.gdx.utils.NumberUtils;
  * later be used for drawing. The size, color, and texture region for each cached image cannot be modified. This information is
  * stored in video memory and does not have to be sent to the GPU each time it is drawn.<br>
  * <br>
- * To cache {@link Sprite sprites} or {@link Texture textures}, first call {@link SpriteCache#beginCache()}, then call the
+ * To cache {@link Sprite sprites} or {@link GLTexture textures}, first call {@link SpriteCache#beginCache()}, then call the
  * appropriate add method to define the images. To complete the cache, call {@link SpriteCache#endCache()} and store the returned
  * cache ID.<br>
  * <br>
@@ -62,7 +62,7 @@ import com.badlogic.gdx.utils.NumberUtils;
  * <br>
  * SpriteCache is a reasonably heavyweight object. Typically only one instance should be used for an entire application.<br>
  * <br>
- * SpriteCache works with OpenGL ES 1.x and 2.0. For 2.0, it uses its own custom shader to draw.<br>
+ * SpriteCache uses its own custom shader to draw.<br>
  * <br>
  * SpriteCache must be disposed once it is no longer needed.
  * @author Nathan Sweet */
@@ -79,7 +79,7 @@ public class SpriteCache implements Disposable {
 	private final ShaderProgram shader;
 
 	private Cache currentCache;
-	private final Array<Texture> textures = new Array(8);
+	private final Array<GLTexture> textures = new Array(8);
 	private final IntArray counts = new IntArray(8);
 
 	private float color = Color.WHITE.toFloatBits();
@@ -198,7 +198,7 @@ public class SpriteCache implements Disposable {
 			// New cache.
 			cache.maxCount = cacheCount;
 			cache.textureCount = textures.size;
-			cache.textures = textures.toArray(Texture.class);
+			cache.textures = textures.toArray(GLTexture.class);
 			cache.counts = new int[cache.textureCount];
 			for (int i = 0, n = counts.size; i < n; i++)
 				cache.counts[i] = counts.get(i);
@@ -214,7 +214,7 @@ public class SpriteCache implements Disposable {
 
 			cache.textureCount = textures.size;
 
-			if (cache.textures.length < cache.textureCount) cache.textures = new Texture[cache.textureCount];
+			if (cache.textures.length < cache.textureCount) cache.textures = new GLTexture[cache.textureCount];
 			for (int i = 0, n = cache.textureCount; i < n; i++)
 				cache.textures[i] = textures.get(i);
 
@@ -244,7 +244,7 @@ public class SpriteCache implements Disposable {
 	/** Adds the specified vertices to the cache. Each vertex should have 5 elements, one for each of the attributes: x, y, color,
 	 * u, and v. If indexed geometry is used, each image should be specified as 4 vertices, otherwise each image should be
 	 * specified as 6 vertices. */
-	public void add (Texture texture, float[] vertices, int offset, int length) {
+	public void add (GLTexture texture, float[] vertices, int offset, int length) {
 		if (currentCache == null) throw new IllegalStateException("beginCache must be called before add.");
 
 		int verticesPerImage = mesh.getNumIndices() > 0 ? 4 : 6;
@@ -260,7 +260,7 @@ public class SpriteCache implements Disposable {
 	}
 
 	/** Adds the specified texture to the cache. */
-	public void add (Texture texture, float x, float y) {
+	public void add (GLTexture texture, float x, float y) {
 		final float fx2 = x + texture.getWidth();
 		final float fy2 = y + texture.getHeight();
 
@@ -312,7 +312,7 @@ public class SpriteCache implements Disposable {
 	}
 
 	/** Adds the specified texture to the cache. */
-	public void add (Texture texture, float x, float y, int srcWidth, int srcHeight, float u, float v, float u2, float v2,
+	public void add (GLTexture texture, float x, float y, int srcWidth, int srcHeight, float u, float v, float u2, float v2,
 		float color) {
 		final float fx2 = x + srcWidth;
 		final float fy2 = y + srcHeight;
@@ -365,7 +365,7 @@ public class SpriteCache implements Disposable {
 	}
 
 	/** Adds the specified texture to the cache. */
-	public void add (Texture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight) {
+	public void add (GLTexture texture, float x, float y, int srcX, int srcY, int srcWidth, int srcHeight) {
 		float invTexWidth = 1.0f / texture.getWidth();
 		float invTexHeight = 1.0f / texture.getHeight();
 		final float u = srcX * invTexWidth;
@@ -423,7 +423,7 @@ public class SpriteCache implements Disposable {
 	}
 
 	/** Adds the specified texture to the cache. */
-	public void add (Texture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
+	public void add (GLTexture texture, float x, float y, float width, float height, int srcX, int srcY, int srcWidth,
 		int srcHeight, boolean flipX, boolean flipY) {
 
 		float invTexWidth = 1.0f / texture.getWidth();
@@ -494,7 +494,7 @@ public class SpriteCache implements Disposable {
 	}
 
 	/** Adds the specified texture to the cache. */
-	public void add (Texture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
+	public void add (GLTexture texture, float x, float y, float originX, float originY, float width, float height, float scaleX,
 		float scaleY, float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY) {
 
 		// bottom left and top right corner points relative to origin
@@ -888,7 +888,7 @@ public class SpriteCache implements Disposable {
 		Cache cache = caches.get(cacheID);
 		int verticesPerImage = mesh.getNumIndices() > 0 ? 4 : 6;
 		int offset = cache.offset / (verticesPerImage * VERTEX_SIZE) * 6;
-		Texture[] textures = cache.textures;
+		GLTexture[] textures = cache.textures;
 		int[] counts = cache.counts;
 		int textureCount = cache.textureCount;
 		for (int i = 0; i < textureCount; i++) {
@@ -913,7 +913,7 @@ public class SpriteCache implements Disposable {
 		Cache cache = caches.get(cacheID);
 		offset = offset * 6 + cache.offset;
 		length *= 6;
-		Texture[] textures = cache.textures;
+		GLTexture[] textures = cache.textures;
 		int[] counts = cache.counts;
 		int textureCount = cache.textureCount;
 		for (int i = 0; i < textureCount; i++) {
@@ -963,7 +963,7 @@ public class SpriteCache implements Disposable {
 		final int offset;
 		int maxCount;
 		int textureCount;
-		Texture[] textures;
+		GLTexture[] textures;
 		int[] counts;
 
 		public Cache (int id, int offset) {
@@ -1002,7 +1002,7 @@ public class SpriteCache implements Disposable {
 		return shader;
 	}
 
-	/** Sets the shader to be used in a GLES 2.0 environment. Vertex position attribute is called "a_position", the texture
+	/** Sets the shader to be used. Vertex position attribute is called "a_position", the texture
 	 * coordinates attribute is called called "a_texCoords", the color attribute is called "a_color". The projection matrix is
 	 * uploaded via a mat4 uniform called "u_proj", the transform matrix is uploaded via a uniform called "u_trans", the combined
 	 * transform and projection matrx is is uploaded via a mat4 uniform called "u_projTrans". The texture sampler is passed via a

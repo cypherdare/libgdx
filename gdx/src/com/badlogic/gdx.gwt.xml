@@ -100,8 +100,6 @@
 		<include name="graphics/g2d/CpuSpriteBatch.java"/>
 		<include name="graphics/g2d/DistanceFieldFont.java"/>
 		<exclude name="graphics/g2d/Gdx2DPixmap.java"/> <!-- Reason: JNI -->
-		<include name="graphics/g2d/GLTextureAtlas.java"/>
-		<include name="graphics/g2d/GLTextureRegion.java"/>
 		<include name="graphics/g2d/GlyphLayout.java"/>
 		<include name="graphics/g2d/NinePatch.java"/>
 		<include name="graphics/g2d/ParticleEffect.java"/> <!-- Emulated: Not supporting save -->

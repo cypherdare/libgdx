@@ -22,7 +22,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
@@ -243,7 +243,7 @@ public class OrthoCachedTiledMapRenderer implements TiledMapRenderer, Disposable
 				final int rotations = cell.getRotation();
 
 				final TextureRegion region = tile.getTextureRegion();
-				final Texture texture = region.getTexture();
+				final GLTexture texture = region.getTexture();
 
 				final float x1 = col * layerTileWidth + tile.getOffsetX() * unitScale;
 				final float y1 = row * layerTileHeight + tile.getOffsetY() * unitScale;
