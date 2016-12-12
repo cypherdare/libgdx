@@ -1,4 +1,7 @@
 [LATEST]
+- API Change: TextureAtlasData definition moved into GLTextureAtlas. You may need to update imports for TextureAtlasData and associated Pages and Regions.
+- New TextureArrayRegion and TextureArrayAtlas classes.
+- New TexturePacker setting "equalPageSizes" for forcing all pages to be the same size. Useful for creating a TextureArrayAtlas.
 
 [1.9.5]
 - Fix NPE swallowing "video driver unsupported" error on LWJGL 2 backend.

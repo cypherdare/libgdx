@@ -40,8 +40,8 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas.TextureAtlasData;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas.TextureAtlasData.Region;
+import com.badlogic.gdx.graphics.g2d.GLTextureAtlas.TextureAtlasData;
+import com.badlogic.gdx.graphics.g2d.GLTextureAtlas.TextureAtlasData.Region;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -106,6 +106,18 @@ public class TexturePacker {
 			}
 
 			Array<Page> pages = packer.pack(imageProcessor.getImages());
+			
+			if (settings.equalPageSizes){
+				int maxWidth = 0, maxHeight = 0;
+				for (Page page : pages){
+					maxWidth = Math.max(maxWidth, page.width);
+					maxHeight = Math.max(maxHeight, page.height);
+				}
+				for (Page page : pages){
+					page.width = maxWidth;
+					page.height = maxHeight;
+				}
+			}
 
 			String scaledPackFileName = settings.getScaledPackFileName(packFileName, i);
 			writeImages(outputDir, scaledPackFileName, pages);
@@ -555,6 +567,7 @@ public class TexturePacker {
 		public boolean bleed = true;
 		public boolean limitMemory = true;
 		public boolean grid;
+		public boolean equalPageSizes;
 		public float[] scale = {1};
 		public String[] scaleSuffix = {""};
 		public String atlasExtension = ".atlas";
@@ -603,6 +616,7 @@ public class TexturePacker {
 			bleed = settings.bleed;
 			limitMemory = settings.limitMemory;
 			grid = settings.grid;
+			equalPageSizes = settings.equalPageSizes;
 			scale = settings.scale;
 			scaleSuffix = settings.scaleSuffix;
 			atlasExtension = settings.atlasExtension;
