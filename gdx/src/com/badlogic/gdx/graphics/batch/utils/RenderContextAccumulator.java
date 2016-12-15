@@ -3,7 +3,7 @@ package com.badlogic.gdx.graphics.batch.utils;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectIntMap;
 
@@ -23,7 +23,7 @@ public class RenderContextAccumulator {
 		int depthFunc;
 		float depthRangeNear, depthRangeFar;
 		int cullFace;
-		final IntMap<Texture> textureUnits = new IntMap<Texture>(32);
+		final IntMap<GLTexture> textureUnits = new IntMap<GLTexture>(32);
 
 		public void applyDefaults () {
 			blending = depthTesting = culling = false;
@@ -34,11 +34,18 @@ public class RenderContextAccumulator {
 			blendSrcFuncColor = blendSrcFuncAlpha = GL20.GL_ONE;
 			blendDstFuncColor = blendDstFuncAlpha = GL20.GL_ZERO;
 			blendEquationColor = blendEquationAlpha = GL20.GL_FUNC_ADD;
+			depthFunc = GL20.GL_LESS;
 			textureUnits.clear(); 
 		}
 
-		public void voidParameters () {
-			blendSrcFuncColor = blendSrcFuncAlpha = blendDstFuncColor = blendDstFuncAlpha = 0;
+		/** 
+		 * Set invalid values on parameters to force them to be applied on the first
+		 * call to {@link RenderContextAccumulator#executeChanges()}. This reduces unnecessary state
+		 * restoration calls in {@link RenderContextAccumulator#begin()}.
+		 */
+		public void invalidateParameters () {
+			cullFace = blendSrcFuncColor = blendSrcFuncAlpha = blendDstFuncColor = blendDstFuncAlpha = depthFunc = -1;
+			depthRangeNear = depthRangeFar = -2f;
 		}
 	}
 
@@ -53,39 +60,17 @@ public class RenderContextAccumulator {
 		pending.applyDefaults();
 	}
 
-	/** Issues GL commands to reset the states to OpenGL defaults, as required by {@link #begin()}. It is unnecessary to call this
-	 * so long as no direct GL calls have been made to modify state. LibGDX internal classes always leave the states at
-	 * defaults. */
-	public static void restoreDefaultStates () {
+	/** Begin tracking GL state. If any pending changes to state have been made, they will be applied on the first call to {@link #executeChanges()}.
+	 * <p>
+	 * This call must be matched with a call to {@link #end()}, which returns OpenGL states to their defaults. The {@link #executeChanges()}
+	 * method may only be called in between {@link #begin()} and {@link #end()}.*/
+	public void begin () {
+		current.applyDefaults();
+		current.invalidateParameters(); // Avoids having to forcibly set defaults here for parameters that can hold an invalid state
 		Gdx.gl.glDepthMask(true);
 		Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
 		Gdx.gl.glDisable(GL20.GL_CULL_FACE);
 		Gdx.gl.glDisable(GL20.GL_BLEND);
-		Gdx.gl.glDepthFunc(GL20.GL_LESS);
-		Gdx.gl.glDepthRangef(0f, 1f);
-		Gdx.gl.glCullFace(GL20.GL_BACK);
-	}
-
-	/** Begin tracking GL state. Assumes that the OpenGL states are already in their defaults, which means:
-	 * <ul>
-	 * <li>Depth buffer writing (depth mask) is enabled.
-	 * <li>Depth testing is disabled.
-	 * <li>Face culling is disabled.
-	 * <li>Blending is disabled.
-	 * <li>The depth function is {@link GL20#GL_LESS}.
-	 * <li>The depth range is from 0 to 1.
-	 * <li>The cull face parameter is {@link GL20#GL_BACK}.
-	 * </ul>
-	 * An exception is made for the blend function parameters. They will be always be applied on the first call to
-	 * {@link #executeChanges()}.
-	 * <p>
-	 * If you are unsure of current GL state because you are using external libraries, you can call {@link #restoreDefaultStates()}
-	 * first to enforce them.
-	 * <p>
-	 * This call must be matched with a call to {@link #end()}, which returns OpenGL states to their defaults. */
-	public void begin () {
-		current.applyDefaults();
-		current.voidParameters(); // Blend func defaults are not reset by all LibGDX batches, so must be applied.
 	}
 
 	public boolean hasPendingChanges () {
@@ -110,8 +95,8 @@ public class RenderContextAccumulator {
 		}
 			
 		
-		IntMap<Texture> actualTextureUnits = current.textureUnits;
-		for (IntMap.Entry<Texture> entry : pending.textureUnits){
+		IntMap<GLTexture> actualTextureUnits = current.textureUnits;
+		for (IntMap.Entry<GLTexture> entry : pending.textureUnits){
 			if (actualTextureUnits.get(entry.key) != entry.value)
 				return true;
 		}
@@ -186,8 +171,8 @@ public class RenderContextAccumulator {
 			}
 		}
 		
-		IntMap<Texture> currentTextureUnits = current.textureUnits;
-		for (IntMap.Entry<Texture> entry : pending.textureUnits){
+		IntMap<GLTexture> currentTextureUnits = current.textureUnits;
+		for (IntMap.Entry<GLTexture> entry : pending.textureUnits){
 			if (currentTextureUnits.get(entry.key) != entry.value){
 				entry.value.bind(entry.key);
 				currentTextureUnits.put(entry.key, entry.value);
@@ -315,7 +300,7 @@ public class RenderContextAccumulator {
 	
 	/** Sets the texture to be bound to the given texture unit. 
 	 * @return Whether the pending texture for the unit was changed. */
-	public boolean setTextureUnit (Texture texture, int unit){
+	public boolean setTextureUnit (GLTexture texture, int unit){
 		if (pending.textureUnits.get(unit) != texture){
 			if (texture == null)
 				pending.textureUnits.remove(unit);
