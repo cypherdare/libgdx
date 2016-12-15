@@ -160,17 +160,20 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		return internalBatchable;
 	}
 	
-	/** Queues a Batchable for drawing. The Batchable must be of the same type as the {@link #batchableType} of this FlexBatch,
-	 * or it must be of a compatible subclass (one that has equivalent {@link VertexAttributes}), and is of the same fixed size
-	 * if it has fixed size.
-	 * <p>
-	 * The state (render context parameters and texture(s)) of a Batchable instance must remain unchanged until the FlexBatch is 
-	 * flushed or another Batchable is drawn. This is because it must be used for comparison against the next Batchable to 
-	 * determine if a flush is required, and for applying render context state changes and texture bindings.
+	/** Queues a Batchable for drawing. Certain characteristics of the supplied Batchable class must match those of the {@link #batchableType} 
+	 * of this FlexBatch:
+	 * <ul>
+	 * <li> Vertex size must be the same or smaller.
+	 * <li> {@link Batchable#prepareSharedContext(RenderContextAccumulator)} must perform equivalent changes.
+	 * <li> {@code instanceof FixedSizeBatchable} must be the same for both.
+	 * </ul>
+	 * The above criteria are not checked. If the supplied Batchable class's {@link VertexAttributes}) do not match 
+	 * those of the {@link #batchableType}, a different shader may be needed for this Batchable. The docs for the built-in Batchables
+	 * explain their compatibility.
 	 * 
 	 * @param batchable
 	 */
-	public void draw (T batchable) {
+	public void draw (Batchable batchable) {
 		if (havePendingInternal) drawPending();
 		if (!drawing) throw new IllegalStateException("begin() must be called before drawing.");
 		if (batchable.prepareContext(renderContext, maxVertices - vertIdx * vertexSize, fixedIndices ? 0 : maxTriangles - triIdx * 3)) {
@@ -188,11 +191,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	}
 	
 	/**Draws explicit vertex data, using only the render context and Texture parameter(s) of the passed in Batchable. This must only be called
-	 * if the Batchable type has a fixed size.
-	 * <p>
-	 * The state (render context parameters and texture(s)) of a Batchable instance must remain unchanged until the FlexBatch is 
-	 * flushed or another Batchable is drawn. This is because it must be used for comparison against the next Batchable to 
-	 * determine if a flush is required.
+	 * if the Batchable type has a fixed size. The restrictions on the supplied Batchable class are the same as those in {@link #draw(Batchable)}.
 	 * @param batchable A Batchable that defines the render context and textures to draw, but not the actual vertex data.
 	 * @param explicitVertices Pre-computed vertex data that is large enough for the Batchable type. 
 	 * @param offset Starting index of the data in the array.
@@ -201,7 +200,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	 * the size of the vertices for the Batchable type. If smaller, the data for the excess vertex attributes will be garbage,
 	 * but this may be acceptable if the current shader doesn't use them. It is assumed that the VertexAttributes being drawn match
 	 * the first of the VertexAttributes of the Batchable type. */
-	protected void draw (T batchable, float[] explicitVertices, int offset, int count, int vertexSize) {
+	protected void draw (Batchable batchable, float[] explicitVertices, int offset, int count, int vertexSize) {
 		if (havePendingInternal) drawPending();
 		if (!drawing) throw new IllegalStateException("begin() must be called before drawing.");
 		if (batchable.prepareContext(renderContext, maxVertices - vertIdx * vertexSize, fixedIndices ? 0 : maxTriangles - triIdx * 3)) {
@@ -254,11 +253,8 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	}
 	
 	/**Draws explicit vertex data, using only the Texture parameter(s) of the passed in Batchable. This must only be called
-	 * if the Batchable type does not have a fixed size.
-	 * <p>
-	 * The state (render context parameters and texture(s)) of a Batchable instance must remain unchanged until the FlexBatch is 
-	 * flushed or another Batchable is drawn. This is because it must be used for comparison against the next Batchable to 
-	 * determine if a flush is required.
+	 * if the Batchable type does not have a fixed size. The restrictions on the supplied Batchable class are the same as those in 
+	 * {@link #draw(Batchable)}.
 	 * <p>
 	 * The batch must have enough total capacity for the entire set of vertices and triangles. This is not checked.
 	 * @param batchable A Batchable that defines the render context and textures to draw, but not the actual vertex data.
