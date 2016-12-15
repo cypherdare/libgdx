@@ -71,8 +71,12 @@ public class Quad3D extends Quad implements SortableBatchable<Quad3D> {
 		}
 	}
 
-	protected final boolean isThreeDimensional () {
+	protected final boolean isPosition3D () {
 		return true;
+	}
+	
+	protected boolean isTextureCoordinate3D () {
+		return false;
 	}
 
 	public boolean isOpaque () {
@@ -98,8 +102,8 @@ public class Quad3D extends Quad implements SortableBatchable<Quad3D> {
 	}
 	
 	public boolean hasEquivalentTextures (Quad3D other) {
-		for (int i = 0; i < textureRegions.length; i++) {
-			if (other.textureRegions[i].getTexture() != textureRegions[i].getTexture()) return false;
+		for (int i = 0; i < textures.length; i++) {
+			if (other.textures[i] != textures[i]) return false;
 		}
 		return true;
 	}

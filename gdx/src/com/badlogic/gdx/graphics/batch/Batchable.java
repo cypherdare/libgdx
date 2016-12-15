@@ -5,12 +5,13 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.batch.utils.AttributeOffsets;
 import com.badlogic.gdx.graphics.batch.utils.RenderContextAccumulator;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Pool.Poolable;
 
 /**A Batchable is an object that can be drawn by a FlexBatch. It also serves as a template object for the FlexBatch
  * to set itself up. All subclasses of Batchable must have an empty constructor.
  * 
  * @author cypherdare */
-public abstract class Batchable {
+public abstract class Batchable implements Poolable {
 	// This is an abstract class instead of interface so most of these methods can be hidden from the public API to make
 	// implementations of Batchable easier to use.
 	

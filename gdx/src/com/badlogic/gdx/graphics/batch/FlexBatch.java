@@ -136,7 +136,10 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		drawing = false;
 
 		renderContext.end();
-		renderContext.clearAllTextureUnits(); // Avoid hanging onto native resource object references
+		
+		// Avoid hanging onto native resource object references
+		renderContext.clearAllTextureUnits();
+		internalBatchable.reset();
 
 		shader.end();
 	}

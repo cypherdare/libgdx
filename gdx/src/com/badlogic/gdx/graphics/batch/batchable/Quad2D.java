@@ -24,7 +24,11 @@ import com.badlogic.gdx.utils.NumberUtils;
 public class Quad2D extends Quad {
 	public float rotation;
 
-	protected final boolean isThreeDimensional () {
+	protected final boolean isPosition3D () {
+		return false;
+	}
+	
+	protected boolean isTextureCoordinate3D () {
 		return false;
 	}
 	
@@ -162,6 +166,11 @@ public class Quad2D extends Quad {
 	
 	public Quad2D flip (boolean flipX, boolean flipY){
 		super.flip(flipX, flipY);
+		return this;
+	}
+	
+	public Quad2D flipAll (boolean flipX, boolean flipY){
+		super.flipAll(flipX, flipY);
 		return this;
 	}
 	

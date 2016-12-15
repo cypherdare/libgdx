@@ -12,15 +12,16 @@ public final class BatchablePreparation {
 	/** Generate vertex attributes suitable for multi-texturing and vertex color. 32 bit floats are used
 	 * for each position component and texture coordinate. The four color components are packed into a single 32 bit float.
 	 * @param textureCount The number of textures to support.
-	 * @param threeDimensional Whether the position attributes should include a Z component.
+	 * @param position3D Whether the position attribute should include a Z component.
+	 * @param textureCoordinates3D Whether the texture coordinate attribute(s) should include a third component.
 	 * @param attributes The array to add the vertex attributes to. They are added with position and color in the first two 
 	 * available positions, followed by texture coordinates.
 	 */
-	public static void addBaseAttributes (Array<VertexAttribute> attributes, int textureCount, boolean threeDimensional){
-		attributes.add(new VertexAttribute(Usage.Position, threeDimensional ? 3 : 2, ShaderProgram.POSITION_ATTRIBUTE));
+	public static void addBaseAttributes (Array<VertexAttribute> attributes, int textureCount, boolean position3D, boolean textureCoordinates3D){
+		attributes.add(new VertexAttribute(Usage.Position, position3D ? 3 : 2, ShaderProgram.POSITION_ATTRIBUTE));
 		attributes.add(new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE));
 		for (int i=0; i<textureCount; i++){
-			attributes.add(new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + i, i));
+			attributes.add(new VertexAttribute(Usage.TextureCoordinates, textureCoordinates3D ? 3 : 2, ShaderProgram.TEXCOORD_ATTRIBUTE + i, i));
 		}
 	}
 	
