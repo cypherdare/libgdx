@@ -13,7 +13,9 @@ import com.badlogic.gdx.graphics.batch.utils.Region2D;
 import com.badlogic.gdx.graphics.batch.utils.RenderContextAccumulator;
 import com.badlogic.gdx.graphics.batch.utils.SortableBatchable;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.NumberUtils;
 import com.badlogic.gdx.utils.Pool;
@@ -43,7 +45,7 @@ public abstract class Poly extends Batchable implements Poolable {
 		BatchablePreparation.addBaseAttributes(attributes, getNumberOfTextures(), isPosition3D(), isTextureCoordinate3D());
 	}
 	
-	protected int getNumberOfTextures () {
+	protected final int getNumberOfTextures () {
 		return 1;
 	}
 
@@ -130,140 +132,33 @@ public abstract class Poly extends Batchable implements Poolable {
 	}
 
 	protected int apply (float[] vertices, int vertexStartingIndex, AttributeOffsets offsets, int vertexSize) {
-		if (!sizeSet && regions.length > 0) {
-			Region2D region = regions[0];
-			width = (region.u2 - region.u) * textures[0].getWidth();
-			height = (region.v2 - region.v) * textures[0].getHeight();
+		final PolygonRegion region = this.region;
+		final TextureRegion tRegion = region.getRegion();
+		if (!sizeSet && region != null) {
+			width = tRegion.getRegionWidth();
+			height = tRegion.getRegionHeight();
 		}
+		final float[] regionVertices = region.getVertices();
 
 		float color = this.color;
-		int ci = vertexStartingIndex + (isPosition3D() ? 3 : 2);
-		int tci = ci + 1;
-		vertices[ci] = color;
-		ci += vertexSize;
-		vertices[ci] = color;
-		ci += vertexSize;
-		vertices[ci] = color;
-		ci += vertexSize;
-		vertices[ci] = color;
-		int tcSize = isTextureCoordinate3D() ? 3 : 2;
+		for (int i = 0, v = vertexStartingIndex + offsets.color0, n = regionVertices.length; i < n; i += 2, v += vertexSize) {
+			vertices[v] = color;
+		}
 
-		switch (coordinatesRotation % 4) {
-		case 0:
-			for (int i = 0; i < regions.length; i++) {
-				Region2D region = regions[i];
-				final float u = region.u;
-				final float v = region.v;
-				final float u2 = region.u2;
-				final float v2 = region.v2;
-
-				int temp = tci;
-				vertices[tci] = u;
-				vertices[tci + 1] = v2;
-				tci += vertexSize;
-				vertices[tci] = u;
-				vertices[tci + 1] = v;
-				tci += vertexSize;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v;
-				tci += vertexSize;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v2;
-
-				tci = temp + tcSize;
-			}
-			break;
-		case 1:
-			for (int i = 0; i < regions.length; i++) {
-				Region2D region = regions[i];
-				final float u = region.u;
-				final float v = region.v;
-				final float u2 = region.u2;
-				final float v2 = region.v2;
-
-				int temp = tci;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v2;
-				tci += vertexSize;
-				vertices[tci] = u;
-				vertices[tci + 1] = v2;
-				tci += vertexSize;
-				vertices[tci] = u;
-				vertices[tci + 1] = v;
-				tci += vertexSize;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v;
-
-				tci = temp + tcSize;
-			}
-			break;
-		case 2:
-			for (int i = 0; i < regions.length; i++) {
-				Region2D region = regions[i];
-				final float u = region.u;
-				final float v = region.v;
-				final float u2 = region.u2;
-				final float v2 = region.v2;
-
-				int temp = tci;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v;
-				tci += vertexSize;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v2;
-				tci += vertexSize;
-				vertices[tci] = u;
-				vertices[tci + 1] = v2;
-				tci += vertexSize;
-				vertices[tci] = u;
-				vertices[tci + 1] = v;
-
-				tci = temp + tcSize;
-			}
-			break;
-		case 3:
-			for (int i = 0; i < regions.length; i++) {
-				Region2D region = regions[i];
-				final float u = region.u;
-				final float v = region.v;
-				final float u2 = region.u2;
-				final float v2 = region.v2;
-				int temp = tci;
-				vertices[tci] = u;
-				vertices[tci + 1] = v;
-				tci += vertexSize;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v;
-				tci += vertexSize;
-				vertices[tci] = u2;
-				vertices[tci + 1] = v2;
-				tci += vertexSize;
-				vertices[tci] = u;
-				vertices[tci + 1] = v2;
-
-				tci = temp + tcSize;
-			}
-			break;
+		float[] textureCoords = region.getTextureCoords();
+		for (int i = 0, v = vertexStartingIndex + offsets.textureCoordinate0, n = regionVertices.length; i < n; i += 2, v += vertexSize) {
+			vertices[v] = textureCoords[i];
+			vertices[v + 1] = textureCoords[i + 1];
 		}
 		
-		if (isTextureCoordinate3D()){
-			int tci3 = ci + 3;
-			for (int i = 0; i < regions.length; i++) {
-				Region2D region = regions[i];
-				final float layer = (float)region.layer;
-				int temp = tci3;
-				vertices[tci3] = layer;
-				tci3 += vertexSize;
-				vertices[tci3] = layer;
-				tci3 += vertexSize;
-				vertices[tci3] = layer;
-				tci3 += vertexSize;
-				vertices[tci3] = layer;
+		return 0; //handled by subclass
+	}
 
-				tci3 = temp + tcSize;
-			}
+	protected int apply (short[] triangles, int startingIndex, short firstVertex) {
+		short[] regionTriangles = region.getTriangles();
+		for (int i = 0; i < regionTriangles.length; i++){
+			triangles[startingIndex++] = (short)(regionTriangles[i] + firstVertex);
 		}
-
-		return 4;
+		return regionTriangles.length / 3;
 	}
 }

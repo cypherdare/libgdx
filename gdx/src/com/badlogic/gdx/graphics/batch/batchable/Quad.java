@@ -244,8 +244,7 @@ public abstract class Quad extends FixedSizeBatchable implements Poolable {
 		}
 
 		float color = this.color;
-		int ci = vertexStartingIndex + (isPosition3D() ? 3 : 2);
-		int tci = ci + 1;
+		int ci = vertexStartingIndex + offsets.color0;
 		vertices[ci] = color;
 		ci += vertexSize;
 		vertices[ci] = color;
@@ -253,8 +252,10 @@ public abstract class Quad extends FixedSizeBatchable implements Poolable {
 		vertices[ci] = color;
 		ci += vertexSize;
 		vertices[ci] = color;
-		int tcSize = isTextureCoordinate3D() ? 3 : 2;
 
+		int tci = vertexStartingIndex + offsets.textureCoordinate0;
+		int tcSize = isTextureCoordinate3D() ? 3 : 2;
+		
 		switch (coordinatesRotation % 4) {
 		case 0:
 			for (int i = 0; i < regions.length; i++) {
