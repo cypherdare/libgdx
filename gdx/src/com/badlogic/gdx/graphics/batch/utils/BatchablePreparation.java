@@ -54,7 +54,7 @@ public final class BatchablePreparation {
 		return sb.toString();
 	}
 	
-	public static String generateGenericFragmentShader (int textureCount){
+	public static String generateGenericFragmentShader (int textureCount){ //TODO default should only use first texture
 		boolean v3 = Gdx.gl30 != null;
 		String varying = v3 ? "in" : "varying";
 		String outColor = v3 ? "fragmentColor" : "gl_FragColor";
@@ -108,12 +108,6 @@ public final class BatchablePreparation {
 	public static void populateQuadrangleIndices (short[] triangles) {
 		short j = 0;
 		for (int i = 0; i + 5 < triangles.length; i += 6, j += 4) {
-//			indices[i] = j; //XXX clockwise winding.
-//			indices[i + 1] = (short)(j + 1);
-//			indices[i + 2] = (short)(j + 2);
-//			indices[i + 3] = (short)(j + 2);
-//			indices[i + 4] = (short)(j + 3);
-//			indices[i + 5] = j;
 			triangles[i] = j;
 			triangles[i + 1] = (short)(j + 2);
 			triangles[i + 2] = (short)(j + 1);

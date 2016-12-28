@@ -33,8 +33,12 @@ public abstract class Batchable implements Poolable {
 		 */
 		protected abstract void populateTriangleIndices (short[] triangles);
 		
+		/**
+		 * Called by FlexBatch to apply triangle index data, only if this FixedSizeBatchable is drawn by a FlexBatch that was
+		 * instantiated for a Batchable that is not a FixedSizeBatchable. See {@link Batchable#apply(short[], int, short)}
+		 */
 		protected final int apply (short[] triangles, int triangleStartingIndex, short firstVertex){
-			return 0; // unused, fixed size
+			return 0; // unnecessary unless cross support with non-fixed-size batch is needed
 		}
 	}
 
@@ -58,11 +62,11 @@ public abstract class Batchable implements Poolable {
 	 * bindings can be made on this context, and the context will return whether the context is now changed, which means a flush 
 	 * is required and this method needs to return true.
 	 * @param remainingVertices The number of vertices that can be drawn before the next flush is required.
-	 * @param remainingTriangles The number of triangles that can be drawn before the next flush is required. This value
+	 * @param remainingIndices The number of triangle indices that can be drawn before the next flush is required. This value
 	 * is undefined for {@link FixedSizeBatchable} and should not be used or checked against.
 	 * @return Whether FlexBatch needs to be flushed before this Batchable can be drawn. This may be true because it binds new
 	 * textures, there isn't enough vertex or triangle capacity left, or because this Batchable uses new render context parameters. */
-	protected abstract boolean prepareContext (RenderContextAccumulator renderContext, int remainingVertices, int remainingTriangles);
+	protected abstract boolean prepareContext (RenderContextAccumulator renderContext, int remainingVertices, int remainingIndices);
 	
 	/** A Batchable implementation calls this to populate a list of vertex attributes that will be used by the FlexBatch. This is called only on one
 	 * of the FlexBatch's internal Batchable instances. All instances of a class must have an equivalent set of attributes. Any subclass that does 

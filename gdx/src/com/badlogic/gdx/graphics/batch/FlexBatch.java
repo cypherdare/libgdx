@@ -31,9 +31,10 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	private final Mesh mesh;
 	private final AttributeOffsets attributeOffsets;
 	private final float[] vertices;
-	private short[] triangles;
+	private final short[] triangles;
 	private int vertIdx, triIdx;
-	private final int maxVertices, vertexSize, maxTriangles;
+	private int unfixedVertCount; // used only for non-fixed indices, for optimization
+	private final int maxVertices, vertexSize, maxIndices;
 	private final boolean fixedIndices;
 	private final int indicesPerBatchable, verticesPerBatchable, vertexDataPerBatchable; // valid only for fixedIndices
 	private boolean drawing = false;
@@ -83,6 +84,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		vertexSize = vertexAttributes.vertexSize / 4;
 		final int vertexArraySize = vertexSize * maxVertices;
 		vertices = new float[vertexArraySize];
+		triangles = new short[maxTriangles * 3];
 
 		fixedIndices = internalBatchable instanceof FixedSizeBatchable;
 		if (fixedIndices) {
@@ -90,14 +92,13 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 			verticesPerBatchable = fixedSizeBatchable.getVerticesPerBatchable();
 			vertexDataPerBatchable = verticesPerBatchable * vertexSize;
 			this.maxVertices = maxVertices - (maxVertices % verticesPerBatchable);
-			this.maxTriangles = (this.maxVertices / verticesPerBatchable)
+			this.maxIndices = (this.maxVertices / verticesPerBatchable)
 				* fixedSizeBatchable.getTrianglesPerBatchable();
 			indicesPerBatchable = fixedSizeBatchable.getTrianglesPerBatchable() * 3;
-			triangles = new short[maxTriangles * 3];
 			fixedSizeBatchable.populateTriangleIndices(triangles);
 		} else {
 			this.maxVertices = maxVertices;
-			this.maxTriangles = maxTriangles;
+			this.maxIndices = maxTriangles * 3;
 			indicesPerBatchable = verticesPerBatchable = vertexDataPerBatchable = 0;
 		}
 		
@@ -176,17 +177,19 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	public void draw (Batchable batchable) {
 		if (havePendingInternal) drawPending();
 		if (!drawing) throw new IllegalStateException("begin() must be called before drawing.");
-		if (batchable.prepareContext(renderContext, maxVertices - vertIdx * vertexSize, fixedIndices ? 0 : maxTriangles - triIdx * 3)) {
-			flush();
-		}
-
 		if (fixedIndices) {
+			if (batchable.prepareContext(renderContext, maxVertices - vertIdx / vertexSize, 0))
+				flush();
 			batchable.apply(vertices, vertIdx, attributeOffsets, vertexSize);
-			vertIdx += vertexDataPerBatchable;
 			triIdx += indicesPerBatchable;
+			vertIdx += vertexDataPerBatchable;
 		} else {
-			vertIdx += vertexSize * batchable.apply(vertices, vertIdx, attributeOffsets, vertexSize);
-			triIdx += batchable.apply(triangles, triIdx, (short)(vertIdx / vertexSize));
+			if (batchable.prepareContext(renderContext, maxVertices - unfixedVertCount, maxIndices - triIdx))
+				flush();
+			triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+			int verticesAdded = batchable.apply(vertices, vertIdx, attributeOffsets, vertexSize);
+			unfixedVertCount += verticesAdded;
+			vertIdx += vertexSize * verticesAdded;
 		}
 	}
 	
@@ -203,7 +206,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	protected void draw (Batchable batchable, float[] explicitVertices, int offset, int count, int vertexSize) {
 		if (havePendingInternal) drawPending();
 		if (!drawing) throw new IllegalStateException("begin() must be called before drawing.");
-		if (batchable.prepareContext(renderContext, maxVertices - vertIdx * vertexSize, fixedIndices ? 0 : maxTriangles - triIdx * 3)) {
+		if (batchable.prepareContext(renderContext, maxVertices - vertIdx / vertexSize, 0)) {
 			flush();
 		}
 		
@@ -260,7 +263,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	 * @param batchable A Batchable that defines the render context and textures to draw, but not the actual vertex data.
 	 * @param explicitVertices Pre-computed vertex data that is large enough for the Batchable type. 
 	 * @param verticesOffset Starting index of the data in the array.
-	 * @param verticesCount The number of array elements to pass. This must be the correct size for the Batchable type, 
+	 * @param vertexDataCount The number of array elements to pass. This must be the correct size for the Batchable type, 
 	 * and is not checked.
 	 * @param vertexSize The size of the vertices in the data (from the {@link VertexAttributes}. Must be the same or smaller than 
 	 * the size of the vertices for the Batchable type. If smaller, the data for the excess vertex attributes will be garbage,
@@ -269,33 +272,32 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	 * @param explicitTriangles Vertex index data for the drawn item, starting from index 0.
 	 * @param trianglesOffset Starting index of the data in the array.
 	 * @param trianglesCount The number of array elements to pass. Must be a multiple of 3.*/
-	protected void draw (T batchable, float[] explicitVertices, int verticesOffset, int verticesCount, int vertexSize,
+	protected void draw (T batchable, float[] explicitVertices, int verticesOffset, int vertexDataCount, int vertexSize,
 		short[] explicitTriangles, int trianglesOffset, int trianglesCount) {
 		if (havePendingInternal) drawPending();
 		if (!drawing) throw new IllegalStateException("begin() must be called before drawing.");
 		if (fixedIndices) throw new UnsupportedOperationException("This method can only be used for Batchables without fixed size");
-		if (batchable.prepareContext(renderContext, maxVertices - vertIdx * vertexSize, fixedIndices ? 0 : maxTriangles - triIdx * 3)) {
+		if (batchable.prepareContext(renderContext, maxVertices - unfixedVertCount, maxIndices - triIdx)) {
 			flush();
 		}
 		
 		int verticesLength = vertices.length;
 		int trianglesLength = triangles.length;
-		final int vertexCount = verticesCount / vertexSize;
+		final int vertexCount = vertexDataCount / vertexSize;
 		if (verticesLength - vertIdx < vertexCount * this.vertexSize || trianglesLength - triIdx < trianglesCount)
 			flush();
 		
 		System.arraycopy(explicitTriangles, trianglesOffset, triangles, triIdx, trianglesCount);
-		final short startingVertex = (short)(vertIdx / vertexSize);
+		final short startingVertex = (short)unfixedVertCount;
 		final int upTo = triIdx + trianglesCount;
 		for (int i=triIdx; i<upTo; i++)
 			triangles[i] += startingVertex;
 		triIdx += trianglesCount;
 
 		if (this.vertexSize == vertexSize){
-			System.arraycopy(explicitVertices, verticesOffset, vertices, vertIdx, verticesCount);
-			vertIdx += verticesCount;
+			System.arraycopy(explicitVertices, verticesOffset, vertices, vertIdx, vertexDataCount);
+			vertIdx += vertexDataCount;
 		} else {
-			
 			for (int i=0; i<vertexCount; i++){
 				System.arraycopy(explicitVertices, verticesOffset, vertices, vertIdx, vertexSize);
 				vertIdx += this.vertexSize;
@@ -303,6 +305,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 			}
 		}
 		
+		unfixedVertCount += vertexCount;
 	}
 	
 	public void flush (){
@@ -326,6 +329,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		renderContext.executeChanges(); // might have flushed for new item
 
 		vertIdx = 0;
+		unfixedVertCount = 0;
 		triIdx = 0;
 		renderCalls++;
 		totalRenderCalls++;

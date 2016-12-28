@@ -1,17 +1,22 @@
 package com.badlogic.gdx.tests;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.batch.CompliantQuadBatch;
 import com.badlogic.gdx.graphics.batch.FlexBatch;
+import com.badlogic.gdx.graphics.batch.batchable.Poly2D;
 import com.badlogic.gdx.graphics.batch.batchable.Quad2D;
 import com.badlogic.gdx.graphics.batch.batchable.Quad3D;
 import com.badlogic.gdx.graphics.batch.utils.BatchablePreparation;
 import com.badlogic.gdx.graphics.batch.utils.BatchableSorter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.PolygonRegion;
+import com.badlogic.gdx.graphics.g2d.PolygonRegionLoader;
+import com.badlogic.gdx.graphics.g2d.PolygonSprite;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -41,10 +46,11 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class FlexBatchTest extends GdxTest {
-	Texture texture, egg, wheel;
+	Texture texture, treeTexture, egg, wheel;
 	SpriteBatch spriteBatch;
 	CompliantQuadBatch<DoubleTexQuad> quad2dBatch;
 	FlexBatch<SolidQuad>	solidQuadBatch;
+	FlexBatch<Poly2D>	poly2dBatch;
 	FlexBatch<Quad3D> quad3dBatch;
 	BatchableSorter<Quad3D> quad3dSorter;
 	PerspectiveCamera pCam;
@@ -58,12 +64,14 @@ public class FlexBatchTest extends GdxTest {
 	Array<Quad3D> quad3ds = new Array<Quad3D>();
 	Sprite testSprite;
 	BitmapFont testFont;
+	PolygonRegion polygonRegion;
 	final ObjectSet<Disposable> disposables = new ObjectSet<Disposable>();
 	private static final int W = 800, H = 480;
 	float elapsed;
+	Array<Item> items = new Array<Item>();
 	
 	private enum Test {
-		Quad3D, CompliantQuadBatch, SolidQuads
+		Poly2D, Quad3D, CompliantQuadBatch, SolidQuads
 	}
 	
 	public static class SolidQuad extends Quad2D {
@@ -93,6 +101,21 @@ public class FlexBatchTest extends GdxTest {
 		
 		testFont = new BitmapFont(Gdx.files.internal("data/arial-32-pad.fnt"), false);
 		testFont.setColor(Color.CYAN);
+
+		treeTexture = new Texture(Gdx.files.internal("data/tree.png"));
+		disposables.add(treeTexture);
+		PolygonRegionLoader loader = new PolygonRegionLoader();
+		polygonRegion = loader.load(new TextureRegion(treeTexture), Gdx.files.internal("data/tree.psh"));
+		MathUtils.random.setSeed(0);
+		for (int i = 0; i < 100; i++) {
+			Item item = new Item();
+			item.x = MathUtils.random();
+			item.y = MathUtils.random();
+			item.color.set(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1.0f);
+			item.scaleX = MathUtils.random(0.5f, 1.5f);
+			item.scaleY = MathUtils.random(0.5f, 1.5f);
+			items.add(item);
+		}
 		
 		spriteBatch = new SpriteBatch(100);
 		spriteBatch.enableBlending();
@@ -136,6 +159,10 @@ public class FlexBatchTest extends GdxTest {
 			quad3ds.add(makeQuad3D(10, 40));
 		}
 		
+		poly2dBatch = new FlexBatch<Poly2D>(Poly2D.class, 1000, 2000);
+		disposables.add(poly2dBatch);
+		poly2dBatch.setShader(typicalShader);
+		
 		setupUI();
 		
 	}
@@ -155,7 +182,23 @@ public class FlexBatchTest extends GdxTest {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		viewport.apply();
 		
+		for (Item item : items) {
+			item.rotation += 45 * Gdx.graphics.getDeltaTime();
+			item.x = item.x + 0.3f * Gdx.graphics.getDeltaTime();
+		}
+		Camera cam = viewport.getCamera();
+		
 		switch (test){
+		case Poly2D:
+			poly2dBatch.setProjectionMatrix(cam.combined);
+			poly2dBatch.begin();
+			for (Item item : items){
+				float x = ((item.x % 1f) - 0.5f) * (cam.viewportWidth + 300) + cam.position.x;
+				float y = (item.y - 0.5f) * (cam.viewportHeight + 100) + cam.position.y;
+				poly2dBatch.draw().region(polygonRegion).position(x, y).scale(item.scaleX, item.scaleY).rotation(item.rotation).color(item.color);
+			}
+			poly2dBatch.end();
+			break;
 		case Quad3D:
 			pCam.position.rotate(Vector3.Z, Gdx.graphics.getDeltaTime() * 90f);
 			pCam.lookAt(0, 0, 0);
@@ -166,27 +209,25 @@ public class FlexBatchTest extends GdxTest {
 			}
 			quad3dBatch.setProjectionMatrix(pCam.combined);
 			quad3dBatch.begin();
-			//quad3dBatch.draw().texture(texture).size(10, 10).billboard(pCam);
 			quad3dSorter.flush(quad3dBatch);
 			quad3dBatch.end();
-			
 			break;
 		case CompliantQuadBatch:{
-			quad2dBatch.setProjectionMatrix(viewport.getCamera().combined);
+			quad2dBatch.setProjectionMatrix(cam.combined);
 			quad2dBatch.begin();
 			quad2dBatch.draw().texture(wheel).color(0, 0.5f, 1, 1).size(100, 100).rotation(45);
 			for (DoubleTexQuad sprite : quad2ds){
 				sprite.rotation += Gdx.graphics.getDeltaTime() * 30;
 				quad2dBatch.draw(sprite);
 			}
+			for (Item item : items){
+				float x = ((item.x % 1f) - 0.5f) * (cam.viewportWidth + 300) + cam.position.x;
+				float y = (item.y - 0.5f) * (cam.viewportHeight + 100) + cam.position.y;
+				quad2dBatch.draw().texture(wheel).position(x, y).scale(item.scaleX, item.scaleY).rotation(item.rotation).color(item.color);
+			}
 			testFont.draw(quad2dBatch, "BitmapFont", 50, 100);
 			testSprite.draw(quad2dBatch);
 			quad2dBatch.end();
-			
-//			spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
-//			spriteBatch.begin();
-//			testFont.draw(spriteBatch, "Windows", 50, 100);
-//			spriteBatch.end();
 			
 			break;
 		}
@@ -251,5 +292,11 @@ public class FlexBatchTest extends GdxTest {
 		quad.position(tmp).size(1, 1);
 		idx++;
 		return quad;
+	}
+	
+	static class Item {
+		public final Color color = new Color();
+		float x, y, width, height, scaleX = 1, scaleY = 1, rotation;
+		int info;
 	}
 }

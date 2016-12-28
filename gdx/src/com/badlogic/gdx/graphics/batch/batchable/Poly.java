@@ -1,6 +1,7 @@
 
 package com.badlogic.gdx.graphics.batch.batchable;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -21,17 +22,12 @@ import com.badlogic.gdx.utils.NumberUtils;
 import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
-/** A Batchable representing a rectangle and supporting zero or more Textures/TextureRegions, and supporting color and position.
- * <p>
- * By default, one texture is used. It may be subclassed to create a Batchable class that supports zero or multiple textures and 
- * additional attributes--see {@link #getNumberOfTextures()} and {@link #addVertexAttributes(com.badlogic.gdx.utils.Array) 
- * addVertexAttributes()}.
- * <p>
- * A Quad has fixed size, so its indices do not need to be recalculated for every draw call.
+/** A Batchable supporting a single {@link PolygonRegion}, with color, position, scale, and an origin offset.
  * 
  * @author cypherdare */
 public abstract class Poly extends Batchable implements Poolable {
-	public PolygonRegion region;
+	protected PolygonRegion region;
+	protected int numVertices, numIndices;
 	public float x, y, color = WHITE, originX, originY, scaleX = 1, scaleY = 1;
 	/** Width and height must be set with {@link #size(float, float)}. If they are not set, they default to the size of the first
 	 * texture region. */
@@ -63,12 +59,12 @@ public abstract class Poly extends Batchable implements Poolable {
 	 * superclass type. */
 	protected abstract boolean isTextureCoordinate3D ();
 
-	protected boolean prepareContext (RenderContextAccumulator renderContext, int remainingVertices, int remainingTriangles) {
+	protected boolean prepareContext (RenderContextAccumulator renderContext, int remainingVertices, int remainingIndices) {
 		boolean textureChanged = false;
 		if (region != null)
 			textureChanged |= renderContext.setTextureUnit(region.getRegion().getTexture(), 0);
-		
-		return textureChanged || remainingVertices < 4;
+
+		return textureChanged || remainingVertices < numVertices || remainingIndices < numIndices;
 	}
 
 	public void refresh () { // Does not reset textures, in the interest of speed. There is no need for the concept of default
@@ -83,12 +79,16 @@ public abstract class Poly extends Batchable implements Poolable {
 	public void reset () {
 		refresh();
 		region = null;
+		numVertices = 0;
+		numIndices = 0;
 	}
 
 	/** Sets the polygon region.
 	 * @return This object for chaining. */
-	public Poly polygonRegion (PolygonRegion region) {
+	public Poly region (PolygonRegion region) {
 		this.region = region;
+		numVertices = region.getVertices().length / 2;
+		numIndices = region.getTriangles().length;
 		return this;
 	}
 
@@ -141,12 +141,12 @@ public abstract class Poly extends Batchable implements Poolable {
 		final float[] regionVertices = region.getVertices();
 
 		float color = this.color;
-		for (int i = 0, v = vertexStartingIndex + offsets.color0, n = regionVertices.length; i < n; i += 2, v += vertexSize) {
+		for (int i = 0, v = vertexStartingIndex + offsets.color0; i < numVertices; i++, v += vertexSize) {
 			vertices[v] = color;
 		}
 
 		float[] textureCoords = region.getTextureCoords();
-		for (int i = 0, v = vertexStartingIndex + offsets.textureCoordinate0, n = regionVertices.length; i < n; i += 2, v += vertexSize) {
+		for (int i = 0, v = vertexStartingIndex + offsets.textureCoordinate0, n = textureCoords.length; i < n; i += 2, v += vertexSize) {
 			vertices[v] = textureCoords[i];
 			vertices[v + 1] = textureCoords[i + 1];
 		}
@@ -159,6 +159,6 @@ public abstract class Poly extends Batchable implements Poolable {
 		for (int i = 0; i < regionTriangles.length; i++){
 			triangles[startingIndex++] = (short)(regionTriangles[i] + firstVertex);
 		}
-		return regionTriangles.length / 3;
+		return numIndices;
 	}
 }

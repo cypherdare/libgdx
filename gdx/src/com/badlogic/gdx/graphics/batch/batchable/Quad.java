@@ -20,7 +20,8 @@ import com.badlogic.gdx.utils.NumberUtils;
 import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
-/** A Batchable representing a rectangle and supporting zero or more Textures/TextureRegions, and supporting color and position.
+/** A Batchable representing a rectangle and supporting zero or more Textures/TextureRegions, and supporting color, position,
+ * scale, and an origin offset.
  * <p>
  * By default, one texture is used. It may be subclassed to create a Batchable class that supports zero or multiple textures and 
  * additional attributes--see {@link #getNumberOfTextures()} and {@link #addVertexAttributes(com.badlogic.gdx.utils.Array) 
@@ -85,7 +86,7 @@ public abstract class Quad extends FixedSizeBatchable implements Poolable {
 	 * superclass type. */
 	protected abstract boolean isTextureCoordinate3D ();
 
-	protected boolean prepareContext (RenderContextAccumulator renderContext, int remainingVertices, int remainingTriangles) {
+	protected boolean prepareContext (RenderContextAccumulator renderContext, int remainingVertices, int remainingIndices) {
 		boolean textureChanged = false;
 		for (int i = 0; i < textures.length; i++) {
 			textureChanged |= renderContext.setTextureUnit(textures[i], i);

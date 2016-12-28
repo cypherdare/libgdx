@@ -80,10 +80,15 @@ public class Poly2D extends Poly {
 			vertices[v + 1] = sin * fx + cos * fy + worldOriginY;
 		}
 		
-		return regionVertices.length / vertexSize;
+		return numVertices;
 	}
 
 	// Chain methods must be overridden to allow return of subclass type.
+	
+	public Poly2D region (PolygonRegion region){
+		super.region(region);
+		return this;
+	}
 	
 	public Poly2D size (float width, float height){
 		super.size(width, height);
