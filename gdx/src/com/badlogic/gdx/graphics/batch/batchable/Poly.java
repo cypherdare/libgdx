@@ -154,10 +154,10 @@ public abstract class Poly extends Batchable implements Poolable {
 		return 0; //handled by subclass
 	}
 
-	protected int apply (short[] triangles, int startingIndex, short firstVertex) {
+	protected int apply (short[] triangles, int triangleStartingIndex, short firstVertex) {
 		short[] regionTriangles = region.getTriangles();
 		for (int i = 0; i < regionTriangles.length; i++){
-			triangles[startingIndex++] = (short)(regionTriangles[i] + firstVertex);
+			triangles[triangleStartingIndex++] = (short)(regionTriangles[i] + firstVertex);
 		}
 		return numIndices;
 	}

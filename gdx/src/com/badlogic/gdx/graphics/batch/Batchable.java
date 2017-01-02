@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.batch.utils.AttributeOffsets;
 import com.badlogic.gdx.graphics.batch.utils.RenderContextAccumulator;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
 /**A Batchable is an object that can be drawn by a FlexBatch. It also serves as a template object for the FlexBatch
@@ -14,33 +15,6 @@ import com.badlogic.gdx.utils.Pool.Poolable;
 public abstract class Batchable implements Poolable {
 	// This is an abstract class instead of interface so most of these methods can be hidden from the public API to make
 	// implementations of Batchable easier to use.
-	
-	/** Parent class for Batchables that all have the same number of vertices and triangles. This allows all triangle indices
-	 * for a FlexBatch to be generated one time so they don't have to be repeatedly updated when drawing. */
-	public static abstract class FixedSizeBatchable extends Batchable {
-		/** @return The number of triangles drawn for each Batchable. Must always return the same value among all
-		 * instances of a class.*/
-		protected abstract int getTrianglesPerBatchable ();
-		
-		/** @return The number of vertices used for each Batchable. Must always return the same value among all
-		 * instances of a class.*/
-		protected abstract int getVerticesPerBatchable ();
-		
-		/**Populate the fixed triangle array for the FlexBatch's mesh. This is called only once on one of the FlexBatch's internal Batchable 
-		 * instances. 
-		 * @param triangles An array of triangle indices that, before this method returns, must be fully populated for drawing a series of 
-		 * this Batchable type.
-		 */
-		protected abstract void populateTriangleIndices (short[] triangles);
-		
-		/**
-		 * Called by FlexBatch to apply triangle index data, only if this FixedSizeBatchable is drawn by a FlexBatch that was
-		 * instantiated for a Batchable that is not a FixedSizeBatchable. See {@link Batchable#apply(short[], int, short)}
-		 */
-		protected final int apply (short[] triangles, int triangleStartingIndex, short firstVertex){
-			return 0; // unnecessary unless cross support with non-fixed-size batch is needed
-		}
-	}
 
 	/** Prepares the rendering context for this type of Batchable to be drawn. This method should set state changes that will be
 	 * the same for all instances of this Batchable type. It must not call {@link RenderContextAccumulator#begin() begin()},
@@ -105,4 +79,59 @@ public abstract class Batchable implements Poolable {
 	 * @return The number of triangle indices that were added.
 	 */
 	protected abstract int apply (short[] triangles, int startingIndex, short firstVertex);
+	
+	/** Parent class for Batchables that all have the same number of vertices and triangles. This allows all triangle indices
+	 * for a FlexBatch to be generated one time so they don't have to be repeatedly updated when drawing. */
+	public static abstract class FixedSizeBatchable extends Batchable {
+		
+		private static ObjectMap<Class, short[]> indicesModels = new ObjectMap<Class, short[]>();
+		
+		/**Primes a FixedSizeBatchable implementation for drawing with FlexBatches that are not limited to FixedSizeBatchables. May
+		 * help avoid a one-time delay the first time one is drawn. */
+		public static <T extends FixedSizeBatchable> void prepareIndices (Class<T> fixedSizeBatchableType){
+			T instance = null;
+			try {
+				instance = fixedSizeBatchableType.newInstance();
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Batchable classes must be public and have an empty constructor.", e);
+			}
+			short[] model = new short[instance.getTrianglesPerBatchable() * 3];
+			instance.populateTriangleIndices(model);
+			indicesModels.put(fixedSizeBatchableType, model);
+		}
+		
+		/** @return The number of triangles drawn for each Batchable. Must always return the same value among all
+		 * instances of a class.*/
+		protected abstract int getTrianglesPerBatchable ();
+		
+		/** @return The number of vertices used for each Batchable. Must always return the same value among all
+		 * instances of a class.*/
+		protected abstract int getVerticesPerBatchable ();
+		
+		/**Populate the fixed triangle array for the FlexBatch's mesh. This is called only once on one of the FlexBatch's internal Batchable 
+		 * instances, or once the first time an instance is drawn with a FlexBatch that is not limited to FixedSizeBatchables.
+		 * @param triangles An array of triangle indices that, before this method returns, must be fully populated for drawing a series of 
+		 * this Batchable type.
+		 */
+		protected abstract void populateTriangleIndices (short[] triangles);
+		
+		/**
+		 * Called by FlexBatch to apply triangle index data, only if this FixedSizeBatchable is drawn by a FlexBatch that is not
+		 * limited to drawing FixedSizeBatchables. See {@link Batchable#apply(short[], int, short)}
+		 */
+		protected final int apply (short[] triangles, int triangleStartingIndex, short firstVertex){
+			short[] model = indicesModels.get(getClass());
+			if (model == null){
+				model = new short[getTrianglesPerBatchable() * 3];
+				populateTriangleIndices(model);
+				indicesModels.put(getClass(), model);
+			}
+			
+			for (int i = 0; i < model.length; i++){
+				triangles[triangleStartingIndex++] = (short)(model[i] + firstVertex);
+			}
+			
+			return model.length;
+		}
+	}
 }

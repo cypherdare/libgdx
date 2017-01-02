@@ -56,7 +56,7 @@ public class CompliantQuadBatch<T extends Quad2D> extends FlexBatch<T> implement
 	 * alternate shader has been applied with {@link #setShader(ShaderProgram)}, the default can be
 	 * used again by setting the shader to null. */
 	public CompliantQuadBatch (Class<T> batchableType, int maxQuads, boolean generateDefaultShader) {
-		super(batchableType, maxQuads * 4, maxQuads * 2);
+		super(batchableType, maxQuads * 4, 0);
 		try {
 			tmp = batchableType.newInstance();
 		} catch (Exception e) {

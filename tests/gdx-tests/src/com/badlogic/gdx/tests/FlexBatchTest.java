@@ -130,7 +130,7 @@ public class FlexBatchTest extends GdxTest {
 			quad2ds.add(sprite);
 		}
 		
-		solidQuadBatch = new FlexBatch<SolidQuad>(SolidQuad.class, 10, 20);
+		solidQuadBatch = new FlexBatch<SolidQuad>(SolidQuad.class, 10, 0);
 		disposables.add(solidQuadBatch);
 		solidShader = new ShaderProgram(BatchablePreparation.generateGenericVertexShader(0), BatchablePreparation.generateGenericFragmentShader(0));
 		disposables.add(solidShader);
@@ -151,7 +151,7 @@ public class FlexBatchTest extends GdxTest {
 		pCam.position.set(0, 20, -20);
 		pCam.lookAt(0, 0, 0);
 		pCam.update();
-		quad3dBatch = new FlexBatch<Quad3D>(Quad3D.class, 4000, 8000);
+		quad3dBatch = new FlexBatch<Quad3D>(Quad3D.class, 4000, 0);
 		quad3dBatch.setShader(typicalShader);
 		disposables.add(quad3dBatch);
 		quad3dSorter = new BatchableSorter<Quad3D>(pCam);

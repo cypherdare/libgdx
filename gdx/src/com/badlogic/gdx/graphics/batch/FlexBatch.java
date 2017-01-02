@@ -55,12 +55,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 	private ShaderProgram shader;
 	
 	/**
-	 * Construct a FlexBatch for the given Batchable type.
-	 * @param batchableType
+	 * Construct a FlexBatch capable of drawing the given Batchable type and other compatible Batchables (ones with the same 
+	+	 * VertexAttributes or subset of beginning VertexAttributes). The FlexBatch will not be limited to FixedSizeBatchables.
+	 * @param batchableType The type of Batchable that defines the VertexAttributes supported by this FlexBatch, and the 
+	+	 * default Batchable type drawn by the {@link #draw()} method.
 	 * @param maxVertices The number of vertices this FlexBatch can batch at once. Maximum of 32767. If the Batchable
-	 * type has a fixed size, this value will be rounded down to a multiple of the Batchable's size.
-	 * @param maxTriangles The number of triangles this FlexBatch can batch at once. If the Batchable type has a fixed
-	 * size, this parameter is ignored, and a size will be selected to match {@code maxVertices}.
+	 * is a FixedSizeBatchable and 0 is used for maxTriangles, this value will be rounded down to a multiple of the Batchable's size.
+	 * @param maxTriangles The number of triangles this FlexBatch can batch at once, or 0 to optimize this FlexBatch to draw
+	 * only FixedSizeBatchables.
 	 */
 	public FlexBatch (Class<T> batchableType, int maxVertices, int maxTriangles) {
 		// 32767 is max vertex index.
@@ -84,26 +86,29 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		vertexSize = vertexAttributes.vertexSize / 4;
 		final int vertexArraySize = vertexSize * maxVertices;
 		vertices = new float[vertexArraySize];
-		triangles = new short[maxTriangles * 3];
+		fixedIndices = internalBatchable instanceof FixedSizeBatchable && maxTriangles == 0;
 
-		fixedIndices = internalBatchable instanceof FixedSizeBatchable;
 		if (fixedIndices) {
 			FixedSizeBatchable fixedSizeBatchable = (FixedSizeBatchable)internalBatchable;
 			verticesPerBatchable = fixedSizeBatchable.getVerticesPerBatchable();
 			vertexDataPerBatchable = verticesPerBatchable * vertexSize;
 			this.maxVertices = maxVertices - (maxVertices % verticesPerBatchable);
 			this.maxIndices = (this.maxVertices / verticesPerBatchable)
-				* fixedSizeBatchable.getTrianglesPerBatchable();
+				* fixedSizeBatchable.getTrianglesPerBatchable() * 3;
 			indicesPerBatchable = fixedSizeBatchable.getTrianglesPerBatchable() * 3;
+			triangles = new short[maxIndices];
 			fixedSizeBatchable.populateTriangleIndices(triangles);
 		} else {
+			if (maxTriangles == 0)
+				throw new IllegalArgumentException("maxTriangles must be greater than 0 if batchableType is not a FixedSizeBatchable");
 			this.maxVertices = maxVertices;
-			this.maxIndices = maxTriangles * 3;
+			maxIndices = maxTriangles * 3;
+			triangles = new short[maxIndices];
 			indicesPerBatchable = verticesPerBatchable = vertexDataPerBatchable = 0;
 		}
 		
 		Mesh.VertexDataType vertexDataType = Gdx.gl30 != null ? VertexDataType.VertexBufferObjectWithVAO : Mesh.VertexDataType.VertexArray;
-		mesh = new Mesh(vertexDataType, false, maxVertices, maxTriangles * 3, vertexAttributes);
+		mesh = new Mesh(vertexDataType, false, this.maxVertices, maxIndices, vertexAttributes);
 		if (fixedIndices)
 			mesh.setIndices(triangles);
 		
