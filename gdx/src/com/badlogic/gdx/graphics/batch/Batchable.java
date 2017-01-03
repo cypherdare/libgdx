@@ -9,12 +9,13 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
 /**A Batchable is an object that can be drawn by a FlexBatch. It also serves as a template object for the FlexBatch
- * to set itself up. All subclasses of Batchable must have an empty constructor.
+ * to set itself up. All subclasses of Batchable must have an empty constructor if they are to be used as a template for
+ * FlexBatch.
  * 
  * @author cypherdare */
 public abstract class Batchable implements Poolable {
 	// This is an abstract class instead of interface so most of these methods can be hidden from the public API to make
-	// implementations of Batchable easier to use.
+	// built-in implementations of Batchable easier to use.
 
 	/** Prepares the rendering context for this type of Batchable to be drawn. This method should set state changes that will be
 	 * the same for all instances of this Batchable type. It must not call {@link RenderContextAccumulator#begin() begin()},

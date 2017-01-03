@@ -198,17 +198,17 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		}
 	}
 	
-	/**Draws explicit vertex data, using only the render context and Texture parameter(s) of the passed in Batchable. This must only be called
-	 * if the Batchable type has a fixed size. The restrictions on the supplied Batchable class are the same as those in {@link #draw(Batchable)}.
+	/**Draws explicit vertex data, using only the render context and Texture parameter(s) of the passed in FixedSizeBatchable. 
+	 * The restrictions on the supplied Batchable class are the same as those in {@link #draw(Batchable)}.
 	 * @param batchable A Batchable that defines the render context and textures to draw, but not the actual vertex data.
 	 * @param explicitVertices Pre-computed vertex data that is large enough for the Batchable type. 
 	 * @param offset Starting index of the data in the array.
-	 * @param count The number of array elements to pass. This must be a multiple of the size for the Batchable type, and is not checked.
+	 * @param count The number of array elements to pass. This must be a multiple of the size of the FixedSizeBatchable, and is not checked.
 	 * @param vertexSize The size of the vertices in the data (from the {@link VertexAttributes}. Must be the same or smaller than 
 	 * the size of the vertices for the Batchable type. If smaller, the data for the excess vertex attributes will be garbage,
 	 * but this may be acceptable if the current shader doesn't use them. It is assumed that the VertexAttributes being drawn match
 	 * the first of the VertexAttributes of the Batchable type. */
-	protected void draw (Batchable batchable, float[] explicitVertices, int offset, int count, int vertexSize) {
+	protected void draw (FixedSizeBatchable batchable, float[] explicitVertices, int offset, int count, int vertexSize) {
 		if (havePendingInternal) drawPending();
 		if (!drawing) throw new IllegalStateException("begin() must be called before drawing.");
 		if (batchable.prepareContext(renderContext, maxVertices - vertIdx / vertexSize, 0)) {
@@ -223,7 +223,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 			int copyCount = Math.min(remainingVertices, count);
 			System.arraycopy(explicitVertices, offset, vertices, vertIdx, copyCount);
 			vertIdx += copyCount;
-			triIdx += (copyCount / vertexDataPerBatchable) * indicesPerBatchable;
+			if (fixedIndices)
+				triIdx += (copyCount / vertexDataPerBatchable) * indicesPerBatchable;
+			else {
+				for (int i=0, n = copyCount / (batchable.getVerticesPerBatchable() * vertexSize); i<n; i++){
+					triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+				}
+				unfixedVertCount += copyCount / this.vertexSize;
+			}
 			count -= copyCount;
 			while (count > 0) {
 				offset += copyCount;
@@ -231,7 +238,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 				copyCount = Math.min(verticesLength, count);
 				System.arraycopy(explicitVertices, offset, vertices, vertIdx, copyCount);
 				vertIdx += copyCount;
-				triIdx += (copyCount / vertexDataPerBatchable) * indicesPerBatchable;
+				if (fixedIndices)
+					triIdx += (copyCount / vertexDataPerBatchable) * indicesPerBatchable;
+				else {
+					for (int i=0, n = copyCount / (batchable.getVerticesPerBatchable() * vertexSize); i<n; i++){
+						triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+					}
+					unfixedVertCount += copyCount / this.vertexSize;
+				}
 				count -= copyCount;
 			}
 		} else {
@@ -243,7 +257,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 				vertIdx += this.vertexSize;
 				offset += vertexSize;
 			}
-			triIdx += (vertexCount * indicesPerBatchable) / verticesPerBatchable;
+			if (fixedIndices)
+				triIdx += (vertexCount * indicesPerBatchable) / verticesPerBatchable;
+			else {
+				for (int i=0, n = (vertexCount / batchable.getVerticesPerBatchable()); i<vertexCount; i++){
+					triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+				}
+				unfixedVertCount += vertexCount;
+			}
 			dstCount -= dstCopyCount;
 			while (dstCount > 0){
 				flush();
@@ -254,15 +275,22 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 					vertIdx += this.vertexSize;
 					offset += vertexSize;
 				}
-				triIdx += (vertexCount * indicesPerBatchable) / verticesPerBatchable;
+				if (fixedIndices)
+					triIdx += (vertexCount * indicesPerBatchable) / verticesPerBatchable;
+				else {
+					for (int i=0, n = (vertexCount / batchable.getVerticesPerBatchable()); i<vertexCount; i++){
+						triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+					}
+					unfixedVertCount += vertexCount;
+				}
 				dstCount -= dstCopyCount;
 			}
 		}
 	}
 	
 	/**Draws explicit vertex data, using only the Texture parameter(s) of the passed in Batchable. This must only be called
-	 * if the Batchable type does not have a fixed size. The restrictions on the supplied Batchable class are the same as those in 
-	 * {@link #draw(Batchable)}.
+	 * if this FlexBatch is not limited to drawing FixedSizedBatchables. The restrictions on the supplied Batchable class 
+	 * are the same as those in {@link #draw(Batchable)}.
 	 * <p>
 	 * The batch must have enough total capacity for the entire set of vertices and triangles. This is not checked.
 	 * @param batchable A Batchable that defines the render context and textures to draw, but not the actual vertex data.

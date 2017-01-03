@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.batch.CompliantQuadBatch;
+import com.badlogic.gdx.graphics.batch.CompliantBatch;
 import com.badlogic.gdx.graphics.batch.FlexBatch;
 import com.badlogic.gdx.graphics.batch.batchable.Poly2D;
 import com.badlogic.gdx.graphics.batch.batchable.Quad2D;
@@ -48,7 +48,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class FlexBatchTest extends GdxTest {
 	Texture texture, treeTexture, egg, wheel;
 	SpriteBatch spriteBatch;
-	CompliantQuadBatch<DoubleTexQuad> quad2dBatch;
+	CompliantBatch<DoubleTexQuad> quad2dBatch;
 	FlexBatch<SolidQuad>	solidQuadBatch;
 	FlexBatch<Poly2D>	poly2dBatch;
 	FlexBatch<Quad3D> quad3dBatch;
@@ -71,7 +71,7 @@ public class FlexBatchTest extends GdxTest {
 	Array<Item> items = new Array<Item>();
 	
 	private enum Test {
-		Poly2D, Quad3D, CompliantQuadBatch, SolidQuads
+		Poly2D, Quad3D, CompliantBatch, SolidQuads
 	}
 	
 	public static class SolidQuad extends Quad2D {
@@ -121,12 +121,13 @@ public class FlexBatchTest extends GdxTest {
 		spriteBatch.enableBlending();
 		disposables.add(spriteBatch);
 		
-		quad2dBatch = new CompliantQuadBatch<DoubleTexQuad>(DoubleTexQuad.class, 4000);
+		quad2dBatch = new CompliantBatch<DoubleTexQuad>(DoubleTexQuad.class, 4000, true);
 		quad2dBatch.enableBlending();
 		disposables.add(quad2dBatch);
 		for (int i=0; i<80; i++){
 			DoubleTexQuad sprite = new DoubleTexQuad();
-			sprite.texture(texture).color(random(), 1, 1, random(0.5f, 1f)).position(random(W), random(H)).rotation(random(360)).size(random(50, 100), random(50, 100));
+			sprite.texture(texture).color(random(), random(), random(), random(0.5f, 1f)).position(random(W), random(H))
+			.rotation(random(360)).size(random(50, 100), random(50, 100));
 			quad2ds.add(sprite);
 		}
 		
@@ -212,18 +213,13 @@ public class FlexBatchTest extends GdxTest {
 			quad3dSorter.flush(quad3dBatch);
 			quad3dBatch.end();
 			break;
-		case CompliantQuadBatch:{
+		case CompliantBatch:{
 			quad2dBatch.setProjectionMatrix(cam.combined);
 			quad2dBatch.begin();
 			quad2dBatch.draw().texture(wheel).color(0, 0.5f, 1, 1).size(100, 100).rotation(45);
 			for (DoubleTexQuad sprite : quad2ds){
 				sprite.rotation += Gdx.graphics.getDeltaTime() * 30;
 				quad2dBatch.draw(sprite);
-			}
-			for (Item item : items){
-				float x = ((item.x % 1f) - 0.5f) * (cam.viewportWidth + 300) + cam.position.x;
-				float y = (item.y - 0.5f) * (cam.viewportHeight + 100) + cam.position.y;
-				quad2dBatch.draw().texture(wheel).position(x, y).scale(item.scaleX, item.scaleY).rotation(item.rotation).color(item.color);
 			}
 			testFont.draw(quad2dBatch, "BitmapFont", 50, 100);
 			testSprite.draw(quad2dBatch);

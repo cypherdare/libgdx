@@ -17,46 +17,49 @@ import com.badlogic.gdx.utils.NumberUtils;
 
 import static com.badlogic.gdx.graphics.g2d.Batch.*;
 
-/** A batch for single-texture {@linkplain Quad2D Quad2Ds} that creates its own default ShaderProgram. The
- * default ShaderProgram is owned and is disposed automatically with the CompliantQuadBatch.
+/** A {@link FlexBatch} that implements the {@link Batch} interface, so it is compatible with {@link Stage}/{@link Actor}, 
+ * {@link BitmapFont}, {@link ParticleEffect}, and {@link Sprite}. It creates its own default ShaderProgram, which is owned 
+ * and is disposed automatically with the CompliantBatch.
  * <p>
- * If you want to use multi-texture Quad2Ds, use {@link FlexBatch} directly with a subclass type of Quad2D
- * that uses multiple textures.
- * <p>
- * This implementation of FlexBatch implements the {@link Batch} interface, so it is compatible with {@link Stage}/{@link Actor}, 
- * {@link BitmapFont}, {@link ParticleEffect}, and {@link Sprite}. It cannot support multi-texturing or
- * extra vertex attributes due to its compliance with Batch. */
-public class CompliantQuadBatch<T extends Quad2D> extends FlexBatch<T> implements Batch {
+ * In addition to drawing Quad2Ds (or given subclass), if polygon support is specified in the constructor, it may also draw 
+ * Poly2Ds (or matching subclass) by submitting them to {@link #draw(Batchable)}.*/
+public class CompliantBatch<T extends Quad2D> extends FlexBatch<T> implements Batch {
 	private final T tmp;
 	private final ShaderProgram defaultShader;
 	private float color = Color.WHITE.toFloatBits();
-	private Color tempColor = new Color(1, 1, 1, 1);
+	private final Color tempColor = new Color();
 	private final float[] tempVertices = new float[20];
 	
 	/** Constructs a CompliantQuadBatch with a default shader and a capacity of 1000 quads that can be
 	 * drawn per flush. The default shader is owned by the CompliantQuadBatch, so it is disposed when the 
 	 * CompliantQuadBatch is disposed. If an alternate shader has been applied with {@link #setShader(ShaderProgram)}, 
-	 * the default can be used again by setting the shader to null. */
-	public CompliantQuadBatch (Class<T> batchableType) {
-		this(batchableType, 1000);
+	 * the default can be used again by setting the shader to null. 
+	 * @param supportPolygons Whether Poly2Ds are supported for drawing. The FlexBatch will not be optimized
+	 * for FixedSizeBatchables. */
+	public CompliantBatch (Class<T> batchableType, boolean supportPolygons) {
+		this(batchableType, 4000, supportPolygons);
 	}
 	
 	/** Constructs a CompliantQuadBatch with a default shader. The default shader is owned by the CompliantQuadBatch, so it is 
 	 * disposed when the CompliantQuadBatch is disposed. If an alternate shader has been applied with 
 	 * {@link #setShader(ShaderProgram)}, the default can be used again by setting the shader to null. 
-	 * @param maxQuads The capacity of quads that can be drawn per batch flush. Must be no greater than 8191.*/
-	public CompliantQuadBatch (Class<T> batchableType, int maxQuads) {
-		this(batchableType, maxQuads, true);
+	 * @param maxVertices The number of vertices this FlexBatch can batch at once. Maximum of 32767.
+	 * @param supportPolygons Whether Poly2Ds are supported for drawing. The FlexBatch will not be optimized
+	 * for FixedSizeBatchables. */
+	public CompliantBatch (Class<T> batchableType, int maxVertices, boolean supportPolygons) {
+		this(batchableType, maxVertices, true, supportPolygons);
 	}
 
 	/** Constructs a CompliantQuadBatch with a specified capacity and optional default shader.
-	 * @param maxQuads The capacity of quads that can be drawn per batch flush. Must be no greater than 8191.
+	 * @param maxVertices The number of vertices this FlexBatch can batch at once. Maximum of 32767.
 	 * @param generateDefaultShader Whether a default shader should be created. The default shader
 	 * is owned by the CompliantQuadBatch, so it is disposed when the CompliantQuadBatch is disposed. If an
 	 * alternate shader has been applied with {@link #setShader(ShaderProgram)}, the default can be
-	 * used again by setting the shader to null. */
-	public CompliantQuadBatch (Class<T> batchableType, int maxQuads, boolean generateDefaultShader) {
-		super(batchableType, maxQuads * 4, 0);
+	 * used again by setting the shader to null. 
+	 * @param supportPolygons Whether Poly2Ds are supported for drawing. The FlexBatch will not be optimized
+	 * for FixedSizeBatchables. */
+	public CompliantBatch (Class<T> batchableType, int maxVertices, boolean generateDefaultShader, boolean supportPolygons) {
+		super(batchableType, maxVertices, supportPolygons ? maxVertices * 2 : 0);
 		try {
 			tmp = batchableType.newInstance();
 		} catch (Exception e) {
