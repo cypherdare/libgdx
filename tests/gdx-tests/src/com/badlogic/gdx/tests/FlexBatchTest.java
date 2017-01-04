@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import static com.badlogic.gdx.math.MathUtils.*;
@@ -88,6 +89,8 @@ public class FlexBatchTest extends GdxTest {
 	
 	@Override
 	public void create () {
+		random.setSeed(0);
+		
 		viewport = new ExtendViewport(W, H);
 		
 		texture = new Texture("data/badlogic.jpg");
@@ -106,14 +109,14 @@ public class FlexBatchTest extends GdxTest {
 		disposables.add(treeTexture);
 		PolygonRegionLoader loader = new PolygonRegionLoader();
 		polygonRegion = loader.load(new TextureRegion(treeTexture), Gdx.files.internal("data/tree.psh"));
-		MathUtils.random.setSeed(0);
+		
 		for (int i = 0; i < 100; i++) {
 			Item item = new Item();
-			item.x = MathUtils.random();
-			item.y = MathUtils.random();
-			item.color.set(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1.0f);
-			item.scaleX = MathUtils.random(0.5f, 1.5f);
-			item.scaleY = MathUtils.random(0.5f, 1.5f);
+			item.x = random();
+			item.y = random();
+			item.color.set(random(), random(), random(), 1.0f);
+			item.scaleX = random(0.5f, 1.5f);
+			item.scaleY = random(0.5f, 1.5f);
 			items.add(item);
 		}
 		
@@ -179,7 +182,7 @@ public class FlexBatchTest extends GdxTest {
 	public void render (){
 		elapsed += Gdx.graphics.getDeltaTime();
 		
-		Gdx.gl.glClearColor(0.7f, 0.7f, 0.7f, 1);
+		Gdx.gl.glClearColor(0.1f, 0.125f, 0.35f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		viewport.apply();
 		
@@ -194,9 +197,7 @@ public class FlexBatchTest extends GdxTest {
 			poly2dBatch.setProjectionMatrix(cam.combined);
 			poly2dBatch.begin();
 			for (Item item : items){
-				float x = ((item.x % 1f) - 0.5f) * (cam.viewportWidth + 300) + cam.position.x;
-				float y = (item.y - 0.5f) * (cam.viewportHeight + 100) + cam.position.y;
-				poly2dBatch.draw().region(polygonRegion).position(x, y).scale(item.scaleX, item.scaleY).rotation(item.rotation).color(item.color);
+				poly2dBatch.draw().region(polygonRegion).position(item.getWorldPosition(cam)).scale(item.scaleX, item.scaleY).rotation(item.rotation).color(item.color);
 			}
 			poly2dBatch.end();
 			break;
@@ -230,6 +231,9 @@ public class FlexBatchTest extends GdxTest {
 		case SolidQuads:
 			solidQuadBatch.setProjectionMatrix(viewport.getCamera().combined);
 			solidQuadBatch.begin();
+			for (Item item : items){
+				solidQuadBatch.draw().size(50, 50).position(item.getWorldPosition(cam)).scale(item.scaleX, item.scaleY).rotation(item.rotation).color(item.color);
+			}
 			solidQuadBatch.draw().color(0, 0.5f, 1, 1).size(100, 100).position(600, 100).rotation(45);
 			solidQuadBatch.draw().size(50, 50).color(Color.BLUE).position(30, 30).rotation(30);
 			solidQuadBatch.draw().size(20, 70).color(Color.MAGENTA).position(400, 430).origin(10, 35).rotation(-elapsed * 45);
@@ -276,7 +280,8 @@ public class FlexBatchTest extends GdxTest {
 		for (Disposable disposable : disposables) disposable.dispose();
 	}
 	
-	int idx; static Vector3 tmp = new Vector3();
+	int idx; 
+	static final Vector3 tmp = new Vector3();
 	private Quad3D makeQuad3D (float radius, float height) {
 		Quad3D quad = new Quad3D();
 		if (idx % 2 == 0){
@@ -284,7 +289,7 @@ public class FlexBatchTest extends GdxTest {
 		} else {
 			quad.texture(wheel).opaque();
 		}
-		tmp.set(radius * MathUtils.random(), 0, 0).rotate(Vector3.Y, MathUtils.random() * 360f).add(0, (MathUtils.random() - 0.5f) * height, 0);
+		tmp.set(radius * random(), 0, 0).rotate(Vector3.Y, random() * 360f).add(0, (random() - 0.5f) * height, 0);
 		quad.position(tmp).size(1, 1);
 		idx++;
 		return quad;
@@ -294,5 +299,12 @@ public class FlexBatchTest extends GdxTest {
 		public final Color color = new Color();
 		float x, y, width, height, scaleX = 1, scaleY = 1, rotation;
 		int info;
+		static final Vector2 tmp = new Vector2();
+		
+		Vector2 getWorldPosition(Camera cam){
+			tmp.x = ((x % 1f) - 0.5f) * (cam.viewportWidth + 300) + cam.position.x;
+			tmp.y = (y - 0.5f) * (cam.viewportHeight + 100) + cam.position.y;
+			return tmp;
+		}
 	}
 }

@@ -224,12 +224,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 			System.arraycopy(explicitVertices, offset, vertices, vertIdx, copyCount);
 			vertIdx += copyCount;
 			if (fixedIndices)
-				triIdx += (copyCount / vertexDataPerBatchable) * indicesPerBatchable;
+				triIdx += (copyCount / this.vertexDataPerBatchable) * this.indicesPerBatchable;
 			else {
-				for (int i=0, n = copyCount / (batchable.getVerticesPerBatchable() * vertexSize); i<n; i++){
-					triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+				int verticesPerBatchable = batchable.getVerticesPerBatchable();
+				for (int i=0, n = copyCount / (verticesPerBatchable * vertexSize); i<n; i++){
+					int indicesAdded = batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+					triIdx += indicesAdded;
+					unfixedVertCount += verticesPerBatchable;
 				}
-				unfixedVertCount += copyCount / this.vertexSize;
 			}
 			count -= copyCount;
 			while (count > 0) {
@@ -239,17 +241,19 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 				System.arraycopy(explicitVertices, offset, vertices, vertIdx, copyCount);
 				vertIdx += copyCount;
 				if (fixedIndices)
-					triIdx += (copyCount / vertexDataPerBatchable) * indicesPerBatchable;
+					triIdx += (copyCount / this.vertexDataPerBatchable) * this.indicesPerBatchable;
 				else {
-					for (int i=0, n = copyCount / (batchable.getVerticesPerBatchable() * vertexSize); i<n; i++){
-						triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+					int verticesPerBatchable = batchable.getVerticesPerBatchable();
+					for (int i=0, n = copyCount / (verticesPerBatchable * vertexSize); i<n; i++){
+						int indicesAdded = batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+						triIdx += indicesAdded;
+						unfixedVertCount += verticesPerBatchable;
 					}
-					unfixedVertCount += copyCount / this.vertexSize;
 				}
 				count -= copyCount;
 			}
 		} else {
-			int dstCount = count / vertexSize * this.vertexSize;
+			int dstCount = (count / vertexSize) * this.vertexSize;
 			int dstCopyCount = Math.min(remainingVertices, dstCount);
 			int vertexCount = dstCopyCount / this.vertexSize;
 			for (int i=0; i<vertexCount; i++){
@@ -258,12 +262,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 				offset += vertexSize;
 			}
 			if (fixedIndices)
-				triIdx += (vertexCount * indicesPerBatchable) / verticesPerBatchable;
+				triIdx += (vertexCount * this.indicesPerBatchable) / this.verticesPerBatchable;
 			else {
-				for (int i=0, n = (vertexCount / batchable.getVerticesPerBatchable()); i<vertexCount; i++){
-					triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+				int verticesPerBatchable = batchable.getVerticesPerBatchable();
+				for (int i=0, n=vertexCount / verticesPerBatchable; i<n; i++){
+					int indicesAdded = batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+					triIdx += indicesAdded;
+					unfixedVertCount += verticesPerBatchable;
 				}
-				unfixedVertCount += vertexCount;
 			}
 			dstCount -= dstCopyCount;
 			while (dstCount > 0){
@@ -276,12 +282,14 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 					offset += vertexSize;
 				}
 				if (fixedIndices)
-					triIdx += (vertexCount * indicesPerBatchable) / verticesPerBatchable;
+					triIdx += (vertexCount * this.indicesPerBatchable) / this.verticesPerBatchable;
 				else {
-					for (int i=0, n = (vertexCount / batchable.getVerticesPerBatchable()); i<vertexCount; i++){
-						triIdx += batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+					int verticesPerBatchable = batchable.getVerticesPerBatchable();
+					for (int i=0, n=vertexCount / verticesPerBatchable; i<n; i++){
+						int indicesAdded = batchable.apply(triangles, triIdx, (short)unfixedVertCount);
+						triIdx += indicesAdded;
+						unfixedVertCount += verticesPerBatchable;
 					}
-					unfixedVertCount += vertexCount;
 				}
 				dstCount -= dstCopyCount;
 			}
