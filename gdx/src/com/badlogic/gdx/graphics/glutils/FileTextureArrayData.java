@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.TextureArrayData;
 import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -126,5 +127,35 @@ public class FileTextureArrayData implements TextureArrayData {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public TextureDataType getType () {
+		return TextureDataType.PixmapArray;
+	}
+
+	@Override
+	public Pixmap consumePixmap () {
+		throw new GdxRuntimeException("This TextureData implementation does not return a Pixmap");
+	}
+
+	@Override
+	public boolean disposePixmap () {
+		throw new GdxRuntimeException("This TextureData implementation does not return a Pixmap");
+	}
+
+	@Override
+	public void consumeCustomData (int target) {
+		throw new GdxRuntimeException("This TextureData implementation does not upload data itself");
+	}
+
+	@Override
+	public Format getFormat () {
+		return format;
+	}
+
+	@Override
+	public boolean useMipMaps () {
+		return useMipMaps;
 	}
 }

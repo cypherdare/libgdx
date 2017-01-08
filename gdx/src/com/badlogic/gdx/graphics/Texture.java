@@ -229,7 +229,18 @@ public class Texture extends GLTexture {
 
 			// next we go through each texture and reload either directly or via the
 			// asset manager.
-			Array<Texture> textures = new Array<Texture>(managedTextureArray);
+			Array<Texture> textures = new Array<Texture>(managedTextureArray.size);
+			
+			//TODO TextureArrays not yet supported by AssetManager so load them synchronously and
+			// don't put them in the array for AssetManager.
+			for(Texture texture : managedTextureArray) {
+				if (texture instanceof TextureArray) {
+					texture.reload();
+				} else {
+					textures.add(texture);
+				}
+			}
+			
 			for (Texture texture : textures) {
 				String fileName = assetManager.getAssetFileName(texture);
 				if (fileName == null) {
