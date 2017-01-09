@@ -42,15 +42,20 @@ import static com.badlogic.gdx.graphics.glutils.ShaderProgram.*;
 import com.badlogic.gdx.math.Affine2;
 import static com.badlogic.gdx.math.MathUtils.*;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.tests.utils.GdxTest;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /** @author cypherdare */
 public class TextureArrayAtlasTest extends GdxTest {
-	TextureAtlas atlas;
+	TextureAtlas atlas, skinAtlas;
 	Array<AtlasRegion> regions;
 	float time = 0;
 	final Affine2 tmp = new Affine2();
@@ -58,12 +63,15 @@ public class TextureArrayAtlasTest extends GdxTest {
 	SpriteBatch spriteBatch;
 	BitmapFont font;
 	ShaderProgram customShader;
+	Skin skin;
+	Stage stage;
 
 	public void create () {
 		FileHandle packFile = Gdx.files.internal("data/pack3page");
 		
 		// Fall back to standard TextureAtlas if not using gl30
 		atlas = Gdx.gl30 == null ? new TextureAtlas(packFile) : new TextureArrayAtlas(packFile);
+		skinAtlas = Gdx.gl30 == null ? new TextureAtlas("data/uiskin.atlas") : new TextureArrayAtlas("data/uiskin.atlas");
 		
 		viewport = new ExtendViewport(640, 480);
 
@@ -79,7 +87,15 @@ public class TextureArrayAtlasTest extends GdxTest {
 		spriteBatch = new SpriteBatch();
 		customShader = Gdx.gl30 == null ? spriteBatch.getShader() : createCustomShader();
 		font = new BitmapFont();
-
+		
+		skin = new Skin(Gdx.files.internal("data/uiskin.json"), skinAtlas);
+		stage = new Stage(viewport, spriteBatch);
+		Table t = new Table();
+		t.setFillParent(true);
+		TextButton button = new TextButton("Toggle me", skin, "toggle");
+		t.add(button).expand().bottom().left().pad(20);
+		stage.addActor(t);
+		Gdx.input.setInputProcessor(stage);
 	}
 	
 	public void resize (int width, int height){
@@ -107,6 +123,11 @@ public class TextureArrayAtlasTest extends GdxTest {
 		}
 		spriteBatch.end();
 		
+		// Skin with TextureArrayAtlas drawn with the custom shader
+		stage.act();
+		stage.draw();
+		
+		// Font with standard TextureAtlas, drawn with the default shader
 		spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
 		spriteBatch.setShader(null);
 		spriteBatch.begin();
