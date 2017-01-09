@@ -21,6 +21,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.AssetLoader;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.glutils.PixmapTextureArrayData;
+import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.graphics.profiling.GLProfiler;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -34,6 +37,7 @@ import java.util.Map;
 public class TextureArray extends Texture {
 
 	private TextureArrayData arrayData;
+	private int drawLayer;
 
 	public TextureArray (String... internalPaths) {
 		this(getInternalHandles(internalPaths));
@@ -51,6 +55,22 @@ public class TextureArray extends Texture {
 		this(TextureArrayData.Factory.loadFromFiles(format, useMipMaps, files));
 	}
 
+	public TextureArray (Pixmap... pixmaps) {
+		this(new PixmapTextureArrayData(null, false, false, pixmaps));
+	}
+
+	public TextureArray (boolean useMipMaps, Pixmap... pixmaps) {
+		this(new PixmapTextureArrayData(null, useMipMaps, false, pixmaps));
+	}
+
+	public TextureArray (Format format, boolean useMipMaps, Pixmap... pixmaps) {
+		this(new PixmapTextureArrayData(format, useMipMaps, false, pixmaps));
+	}
+
+	public TextureArray (Format format, boolean useMipMaps, int width, int height, int depth) {
+		this(new PixmapTextureArrayData(format, useMipMaps, width, height, depth));
+	}
+
 	public TextureArray (TextureArrayData data) {
 		super(GL30.GL_TEXTURE_2D_ARRAY, Gdx.gl.glGenTexture(), data);
 		arrayData = (TextureArrayData)data;
@@ -66,18 +86,18 @@ public class TextureArray extends Texture {
 
 	@Override
 	public void load (TextureData data) {
-		if (!(data instanceof TextureArrayData))
-			throw new GdxRuntimeException("TextureArray only supports TextureArrayData");
+		if (!(data instanceof TextureArrayData)) throw new GdxRuntimeException("TextureArray only supports TextureArrayData");
 		load((TextureArrayData)data);
 	}
-	
+
 	public void load (TextureArrayData data) {
 		if (this.data != null && data.isManaged() != this.data.isManaged())
 			throw new GdxRuntimeException("New data must have the same managed status as the old data");
 		this.data = data;
 
 		bind();
-		Gdx.gl30.glTexImage3D(GL30.GL_TEXTURE_2D_ARRAY, 0, data.getInternalFormat(), data.getWidth(), data.getHeight(), data.getDepth(), 0, data.getInternalFormat(), data.getGLType(), null);
+		Gdx.gl30.glTexImage3D(GL30.GL_TEXTURE_2D_ARRAY, 0, data.getInternalFormat(), data.getWidth(), data.getHeight(),
+			data.getDepth(), 0, data.getInternalFormat(), data.getGLType(), null);
 
 		if (!data.isPrepared()) data.prepare();
 
@@ -92,10 +112,20 @@ public class TextureArray extends Texture {
 	public int getDepth () {
 		return arrayData.getDepth();
 	}
-	
+
+	/** Sets which layer is drawn to with {@link #draw(Pixmap, int, int)}. The layer must be less than the {@link #getDepth()
+	 * depth}. */
+	public void setDrawLayer (int drawLayer) {
+		this.drawLayer = drawLayer;
+	}
+
 	@Override
 	public void draw (Pixmap pixmap, int x, int y) {
-		throw new GdxRuntimeException("TextureArray does not support drawing.");
+		if (data.isManaged()) throw new GdxRuntimeException("can't draw to a managed texture");
+
+		bind();
+		Gdx.gl30.glTexSubImage3D(glTarget, 0, x, y, drawLayer, pixmap.getWidth(), pixmap.getHeight(), 1, pixmap.getGLFormat(),
+			pixmap.getGLType(), pixmap.getPixels());
 	}
 
 }
