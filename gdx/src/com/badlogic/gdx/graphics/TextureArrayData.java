@@ -30,7 +30,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
  *
  * Look at {@link FileTextureArrayData} for example implementation of this interface.
  * @author Tomski */
-public interface TextureArrayData extends TextureData{
+public interface TextureArrayData extends TextureData {
 
 	/** Uploads the pixel data of the TextureArray layers of the TextureArray to the OpenGL ES texture. The caller must bind an OpenGL ES texture. A
 	 * call to {@link #prepare()} must precede a call to this method. Any internal data structures created in {@link #prepare()}
@@ -39,12 +39,6 @@ public interface TextureArrayData extends TextureData{
 
 	/** @return the layer count of this TextureArray */
 	public int getDepth ();
-
-	/** @return the internal format of this TextureArray */
-	public int getInternalFormat ();
-
-	/** @return the GL type of this TextureArray*/
-	public int getGLType ();
 
 	/** Provides static method to instantiate the right implementation.
 	 * @author Tomski */

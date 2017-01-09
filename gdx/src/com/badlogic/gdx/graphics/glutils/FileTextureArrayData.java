@@ -110,16 +110,6 @@ public class FileTextureArrayData implements TextureArrayData {
 	}
 
 	@Override
-	public int getInternalFormat () {
-		return Pixmap.Format.toGlFormat(format);
-	}
-
-	@Override
-	public int getGLType () {
-		return Pixmap.Format.toGlType(format);
-	}
-
-	@Override
 	public boolean isManaged () {
 		for (TextureData data : textureDatas) {
 			if (!data.isManaged()) {

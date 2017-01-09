@@ -47,8 +47,9 @@
 		<include name="assets/loaders/SkinLoader.java"/>
 		<include name="assets/loaders/SoundLoader.java"/>
 		<include name="assets/loaders/SynchronousAssetLoader.java"/>
-		<include name="assets/loaders/TextureAtlasLoader.java"/>
 		<include name="assets/loaders/TextureArrayLoader.java"/>
+		<include name="assets/loaders/TextureArrayAtlasLoader.java"/>
+		<include name="assets/loaders/TextureAtlasLoader.java"/>
 		<include name="assets/loaders/TextureLoader.java"/> <!-- Emulated -->
 		
 	<!-- assets/loaders/resolvers -->		

@@ -96,8 +96,9 @@ public class TextureArray extends Texture {
 		this.data = data;
 
 		bind();
-		Gdx.gl30.glTexImage3D(GL30.GL_TEXTURE_2D_ARRAY, 0, data.getInternalFormat(), data.getWidth(), data.getHeight(),
-			data.getDepth(), 0, data.getInternalFormat(), data.getGLType(), null);
+		int glFormat = Pixmap.Format.toGlFormat(data.getFormat());
+		Gdx.gl30.glTexImage3D(GL30.GL_TEXTURE_2D_ARRAY, 0, glFormat, data.getWidth(), data.getHeight(),
+			data.getDepth(), 0, glFormat, Pixmap.Format.toGlType(data.getFormat()), null);
 
 		if (!data.isPrepared()) data.prepare();
 

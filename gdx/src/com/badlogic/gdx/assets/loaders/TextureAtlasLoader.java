@@ -31,7 +31,7 @@ import com.badlogic.gdx.utils.Array;
  * {@link AssetManager#load(String, Class, AssetLoaderParameters)} allows to specify whether the atlas regions should be flipped
  * on the y-axis or not.
  * @author mzechner */
-public class TextureAtlasLoader extends SynchronousAssetLoader<TextureAtlas, TextureAtlasLoader.TextureAtlasParameter> {
+public class TextureAtlasLoader<T extends TextureAtlas, P extends TextureAtlasLoader.TextureAtlasParameter<T>> extends SynchronousAssetLoader<T, P> {
 	public TextureAtlasLoader (FileHandleResolver resolver) {
 		super(resolver);
 	}
@@ -39,12 +39,20 @@ public class TextureAtlasLoader extends SynchronousAssetLoader<TextureAtlas, Tex
 	TextureAtlasData data;
 
 	@Override
-	public TextureAtlas load (AssetManager assetManager, String fileName, FileHandle file, TextureAtlasParameter parameter) {
+	public T load (AssetManager assetManager, String fileName, FileHandle file, TextureAtlasParameter parameter) {
 		for (Page page : data.getPages()) {
-			Texture texture = assetManager.get(page.textureFile.path().replaceAll("\\\\", "/"), Texture.class);
+			Texture texture = assetManager.get(page.textureFile.path().replaceAll("\\\\", "/"), getTextureType());
 			page.texture = texture;
 		}
 
+		return (T)generateAtlas(data);
+	}
+	
+	protected Class<? extends Texture> getTextureType (){
+		return Texture.class;
+	}
+	
+	protected TextureAtlas generateAtlas (TextureAtlasData data){
 		return new TextureAtlas(data);
 	}
 
@@ -65,12 +73,12 @@ public class TextureAtlasLoader extends SynchronousAssetLoader<TextureAtlas, Tex
 			params.genMipMaps = page.useMipMaps;
 			params.minFilter = page.minFilter;
 			params.magFilter = page.magFilter;
-			dependencies.add(new AssetDescriptor(page.textureFile, Texture.class, params));
+			dependencies.add(new AssetDescriptor(page.textureFile, getTextureType(), params));
 		}
 		return dependencies;
 	}
 
-	static public class TextureAtlasParameter extends AssetLoaderParameters<TextureAtlas> {
+	static public class TextureAtlasParameter<T extends TextureAtlas> extends AssetLoaderParameters<T> {
 		/** whether to flip the texture atlas vertically **/
 		public boolean flip = false;
 

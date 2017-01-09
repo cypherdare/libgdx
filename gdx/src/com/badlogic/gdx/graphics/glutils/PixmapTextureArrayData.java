@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.TextureArrayData;
 import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+/** @author cypherdare */
 public class PixmapTextureArrayData implements TextureArrayData {
 	final Pixmap[] pixmaps;
 	final Format format;
@@ -141,15 +142,5 @@ public class PixmapTextureArrayData implements TextureArrayData {
 	@Override
 	public void consumeCustomData (int target) {
 		throw new GdxRuntimeException("This TextureData implementation does not upload data itself");
-	}
-
-	@Override
-	public int getInternalFormat () {
-		return Pixmap.Format.toGlFormat(format);
-	}
-
-	@Override
-	public int getGLType () {
-		return Pixmap.Format.toGlType(format);
 	}
 }
