@@ -31,7 +31,9 @@ import com.badlogic.gdx.utils.Array;
  * {@link AssetManager#load(String, Class, AssetLoaderParameters)} allows to specify whether the atlas regions should be flipped
  * on the y-axis or not.
  * @author mzechner */
-public class TextureAtlasLoader<T extends TextureAtlas, P extends TextureAtlasLoader.TextureAtlasParameter<T>> extends SynchronousAssetLoader<T, P> {
+public class TextureAtlasLoader<T extends TextureAtlas, P extends TextureAtlasLoader.TextureAtlasParameter<T>>
+	extends SynchronousAssetLoader<T, P> {
+	
 	public TextureAtlasLoader (FileHandleResolver resolver) {
 		super(resolver);
 	}
@@ -41,19 +43,15 @@ public class TextureAtlasLoader<T extends TextureAtlas, P extends TextureAtlasLo
 	@Override
 	public T load (AssetManager assetManager, String fileName, FileHandle file, TextureAtlasParameter parameter) {
 		for (Page page : data.getPages()) {
-			Texture texture = assetManager.get(page.textureFile.path().replaceAll("\\\\", "/"), getTextureType());
+			Texture texture = assetManager.get(toFilePath(page.textureFile), Texture.class);
 			page.texture = texture;
 		}
 
-		return (T)generateAtlas(data);
+		return (T)new TextureAtlas(data);
 	}
 	
-	protected Class<? extends Texture> getTextureType (){
-		return Texture.class;
-	}
-	
-	protected TextureAtlas generateAtlas (TextureAtlasData data){
-		return new TextureAtlas(data);
+	protected static String toFilePath (FileHandle textureFileHandle){
+		return textureFileHandle.path().replaceAll("\\\\", "/");
 	}
 
 	@Override
@@ -66,6 +64,10 @@ public class TextureAtlasLoader<T extends TextureAtlas, P extends TextureAtlasLo
 			data = new TextureAtlasData(atlasFile, imgDir, false);
 		}
 
+		return generateDependencyDescriptors(data);
+	}
+	
+	protected Array<AssetDescriptor> generateDependencyDescriptors (TextureAtlasData data){
 		Array<AssetDescriptor> dependencies = new Array();
 		for (Page page : data.getPages()) {
 			TextureParameter params = new TextureParameter();
@@ -73,7 +75,7 @@ public class TextureAtlasLoader<T extends TextureAtlas, P extends TextureAtlasLo
 			params.genMipMaps = page.useMipMaps;
 			params.minFilter = page.minFilter;
 			params.magFilter = page.magFilter;
-			dependencies.add(new AssetDescriptor(page.textureFile, getTextureType(), params));
+			dependencies.add(new AssetDescriptor(page.textureFile, Texture.class, params));
 		}
 		return dependencies;
 	}

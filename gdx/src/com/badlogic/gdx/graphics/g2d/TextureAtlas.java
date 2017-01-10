@@ -237,17 +237,18 @@ public class TextureAtlas implements Disposable {
 	}
 	
 	protected void load (TextureAtlasData data) {
-		ObjectMap<Page, Texture> pageToTexture = readPagesToTextures(data);
+		ObjectMap<Page, Texture> pageToTexture = readPageTextures(data);
 
 		for (Region region : data.regions) {
 			AtlasRegion atlasRegion = generateAtlasRegionFromData(region, pageToTexture.get(region.page));
 			regions.add(atlasRegion);
 		}
 	}
-	
-	/** Loads textures from the pages of the TextureAtlasData, and adds them to the {@link #textures} set.
+
+	/** Loads textures from the pages of the TextureAtlasData if they haven't been loaded yet, and adds all page textures to the
+	 * {@link #textures} set.
 	 * @return A mapping of the pages to their corresponding textures. */
-	protected ObjectMap<Page, Texture> readPagesToTextures (TextureAtlasData data){
+	protected ObjectMap<Page, Texture> readPageTextures (TextureAtlasData data) {
 		ObjectMap<Page, Texture> pageToTexture = new ObjectMap<Page, Texture>();
 		for (Page page : data.pages) {
 			Texture texture = null;

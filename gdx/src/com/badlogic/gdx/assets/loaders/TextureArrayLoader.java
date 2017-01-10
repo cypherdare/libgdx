@@ -108,6 +108,10 @@ public class TextureArrayLoader extends AsynchronousAssetLoader<TextureArray, Te
 	static public class TextureArrayParameter extends AssetLoaderParameters<TextureArray> {
 		/** Optional explicitly named files to load instead of using the file name passed to the AssetManager. */
 		public String[] fileNames;
+		/** Sets optional explicitly named files to load instead of using the file name passed to the AssetManager. */
+		public void setFiles(String...fileNames){
+			this.fileNames = fileNames;
+		}
 		/** the format of the final TextureArray. Uses the source images format if null. **/
 		public Format format = null;
 		/** whether to generate mipmaps **/

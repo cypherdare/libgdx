@@ -78,25 +78,10 @@ public class TextureArrayAtlas extends TextureAtlas {
 	}
 
 	@Override
-	protected ObjectMap<Page, Texture> readPagesToTextures (TextureAtlasData data) {
+	protected ObjectMap<Page, Texture> readPageTextures (TextureAtlasData data) {
 		ObjectMap<Page, Texture> pageToTexture = new ObjectMap<Page, Texture>();
 		
-		// Group pages that can share a texture array
-		ObjectSet<Array<Page>> pageArrays = new ObjectSet<Array<Page>>(); 
-		for (Page page : data.pages) {
-			Array<Page> compatiblePages = null;
-			for (Array<Page> pageArray : pageArrays) {
-				if (canPagesShareTextureArray(pageArray.first(), page)) {
-					compatiblePages = pageArray;
-					break;
-				}
-			}
-			if (compatiblePages == null) {
-				compatiblePages = new Array<Page>(4);
-				pageArrays.add(compatiblePages);
-			}
-			compatiblePages.add(page);
-		}
+		ObjectSet<Array<Page>> pageArrays = groupPagesBySharableTexture(data.pages);
 		
 		pagesToLayers = new ObjectIntMap<Page>();
 		for (Array<Page> pageArray : pageArrays) {
@@ -133,12 +118,6 @@ public class TextureArrayAtlas extends TextureAtlas {
 		return atlasRegion;
 	}
 	
-	private boolean canPagesShareTextureArray (Page page0, Page page1){
-		return page0.texture == null && page1.texture == null && page0.width == page1.width && page0.height == page1.height
-			&& page0.useMipMaps == page1.useMipMaps && page0.minFilter == page1.minFilter && page0.magFilter == page1.magFilter
-			&& page0.uWrap == page1.uWrap && page0.vWrap == page1.vWrap;
-	}
-	
 	@Override
 	public AtlasRegion addRegion (String name, Texture texture, int x, int y, int width, int height) {
 		AtlasRegion region = super.addRegion(name, texture, x, y, width, height);
@@ -160,6 +139,31 @@ public class TextureArrayAtlas extends TextureAtlas {
 		AtlasRegion region = addRegion(name, texture, x, y, width, height);
 		region.setLayer(layer);
 		return region;
+	}
+	
+	public static ObjectSet<Array<Page>> groupPagesBySharableTexture (Array<Page> pages){
+		ObjectSet<Array<Page>> pageArrays = new ObjectSet<Array<Page>>(); 
+		for (Page page : pages) {
+			Array<Page> compatiblePages = null;
+			for (Array<Page> pageArray : pageArrays) {
+				if (canPagesShareTextureArray(pageArray.first(), page)) {
+					compatiblePages = pageArray;
+					break;
+				}
+			}
+			if (compatiblePages == null) {
+				compatiblePages = new Array<Page>(4);
+				pageArrays.add(compatiblePages);
+			}
+			compatiblePages.add(page);
+		}
+		return pageArrays;
+	}
+	
+	private static boolean canPagesShareTextureArray (Page page0, Page page1){
+		return page0.width == page1.width && page0.height == page1.height
+			&& page0.useMipMaps == page1.useMipMaps && page0.minFilter == page1.minFilter && page0.magFilter == page1.magFilter
+			&& page0.uWrap == page1.uWrap && page0.vWrap == page1.vWrap;
 	}
 	
 }

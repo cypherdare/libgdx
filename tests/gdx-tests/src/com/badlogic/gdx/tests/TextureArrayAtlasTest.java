@@ -19,6 +19,8 @@ import java.util.Random;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.SkinLoader;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GLTexture;
@@ -55,7 +57,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /** @author cypherdare */
 public class TextureArrayAtlasTest extends GdxTest {
-	TextureAtlas atlas, skinAtlas;
+	TextureAtlas atlas;
 	Array<AtlasRegion> regions;
 	float time = 0;
 	final Affine2 tmp = new Affine2();
@@ -65,13 +67,22 @@ public class TextureArrayAtlasTest extends GdxTest {
 	ShaderProgram customShader;
 	Skin skin;
 	Stage stage;
+	AssetManager assetManager;
 
 	public void create () {
-		FileHandle packFile = Gdx.files.internal("data/pack3page");
+		String packFile = "data/pack3page";
+		String skinFile = "data/uiskin.json";
+		
+		assetManager = new AssetManager();
 		
 		// Fall back to standard TextureAtlas if not using gl30
-		atlas = Gdx.gl30 == null ? new TextureAtlas(packFile) : new TextureArrayAtlas(packFile);
-		skinAtlas = Gdx.gl30 == null ? new TextureAtlas("data/uiskin.atlas") : new TextureArrayAtlas("data/uiskin.atlas");
+		Class textureAtlasClass = Gdx.gl30 == null ? TextureAtlas.class : TextureArrayAtlas.class;
+		
+		assetManager.load(packFile, textureAtlasClass);
+		assetManager.load(skinFile, Skin.class, new SkinLoader.SkinParameter(){{useTextureArrayAtlas = Gdx.gl30 != null;}});
+		assetManager.finishLoading();
+		atlas = assetManager.get(packFile, textureAtlasClass);
+		skin = assetManager.get(skinFile, Skin.class);
 		
 		viewport = new ExtendViewport(640, 480);
 
@@ -88,7 +99,6 @@ public class TextureArrayAtlasTest extends GdxTest {
 		customShader = Gdx.gl30 == null ? spriteBatch.getShader() : createCustomShader();
 		font = new BitmapFont();
 		
-		skin = new Skin(Gdx.files.internal("data/uiskin.json"), skinAtlas);
 		stage = new Stage(viewport, spriteBatch);
 		Table t = new Table();
 		t.setFillParent(true);
@@ -137,10 +147,11 @@ public class TextureArrayAtlasTest extends GdxTest {
 	}
 
 	public void dispose () {
-		atlas.dispose();
+		assetManager.dispose();
 		customShader.dispose();
 		spriteBatch.dispose();
 		font.dispose();
+		stage.dispose();
 	}
 	
 	static ShaderProgram createCustomShader () {
