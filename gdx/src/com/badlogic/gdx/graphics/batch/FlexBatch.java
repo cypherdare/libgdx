@@ -108,7 +108,7 @@ public class FlexBatch<T extends Batchable> implements Disposable {
 		}
 		
 		Mesh.VertexDataType vertexDataType = Gdx.gl30 != null ? VertexDataType.VertexBufferObjectWithVAO : Mesh.VertexDataType.VertexArray;
-		mesh = new Mesh(vertexDataType, false, this.maxVertices, maxIndices, vertexAttributes);
+		mesh = new Mesh(vertexDataType, false, this.maxVertices, maxIndices, attributesArray.toArray());
 		if (fixedIndices)
 			mesh.setIndices(triangles);
 		
