@@ -328,6 +328,88 @@ public class Color {
 			value = "0" + value;
 		return value;
 	}
+	
+	/** @return The HSV-model hue of the RGB components, as a value between 0 and 360, divided evenly from red to green to blue and back to
+	 *         red. If the color is desaturated, the hue is 0. */
+	public float getHue () {
+		float max = Math.max(b, Math.max(r, g));
+		float min = Math.min(b, Math.min(r, g));
+		if (max == min) {
+			return 0;
+		} else {
+			float dem = (max - min) / 60f;
+
+			float hue;
+			if (r == max) {
+				hue = (g - b) / dem;
+			} else if (g == max) {
+				hue = 20f + (b - r) / dem;
+			} else {
+				hue = 40f + (r - g) / dem;
+			}
+
+			if (hue < 0) {
+				hue += 360f;
+			}
+			return hue;
+		}
+	}
+
+	/** @return The HSV-model saturation of the RGB components, as a value between 0 and 1, where 1 is fully saturated. */
+	public float getSaturation () {
+		float max = Math.max(b, Math.max(r, g));
+		float min = Math.min(b, Math.min(r, g));
+      if (max == min)
+      	return 0;
+      return (max - min) / max;
+	}
+	
+	/** @return The HSV-model value of the RGB components, as a value between 0 and 1, where 1 is fully bright. */
+	public float getValue () {
+		return Math.max(b, Math.max(r, g));
+	}
+	
+	public Color setHSV (float hue, float saturation, float value) {
+		float chroma = saturation - value;
+		float huePrime = hue / 60f;
+		float X = chroma * (1 - Math.abs(huePrime % 2 - 1));
+		if (huePrime < 1) {
+			r = chroma;
+			g = X;
+			b = 0;
+		} else if (huePrime < 2) {
+			r = X;
+			g = chroma;
+			b = 0;
+		} else if (huePrime < 3) {
+			r = 0;
+			g = chroma;
+			b = X;
+		} else if (huePrime < 4) {
+			r = 0;
+			g = X;
+			b = chroma;
+		} else if (huePrime < 5) {
+			r = X;
+			g = 0;
+			b = chroma;
+		} else if (huePrime < 6) {
+			r = chroma;
+			g = 0;
+			b = X;
+		} else {
+			r = 0;
+			g = 0;
+			b = 0;
+		}
+
+		float m = value - chroma;
+		r += m;
+		g += m;
+		b += m;
+
+		return this;
+	}
 
 	/** Returns a new color from a hex string with the format RRGGBBAA.
 	 * @see #toString() */
