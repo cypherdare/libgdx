@@ -752,6 +752,16 @@ public class Json {
 	public <T> T fromJson (Class<T> type, Class elementType, String json) {
 		return (T)readValue(type, elementType, new JsonReader().parse(json));
 	}
+	
+	public <T> T copy (T object){
+		String json = toJson(object);
+		return (T)fromJson(object.getClass(), json);
+	}
+	
+	public <S, T extends S> T copy (S object, Class<T> destinationType){
+		String json = toJson(object);
+		return (T)fromJson(destinationType, json);
+	}
 
 	public void readField (Object object, String name, JsonValue jsonData) {
 		readField(object, name, name, null, jsonData);
@@ -883,6 +893,23 @@ public class Json {
 	public <T> T readValue (Class<T> type, JsonValue jsonData) {
 		return (T)readValue(type, null, jsonData);
 	}
+	
+	/** Determine the class represented by the JsonValue, or null if none can be determined. */
+	protected <T> Class<T> determineType (Class<T> knownType, JsonValue jsonData){
+		String className = typeName == null ? null : jsonData.getString(typeName, null);
+		Class<T> type = knownType;
+		if (className != null) {
+			type = getClass(className);
+			if (type == null) {
+				try {
+					type = (Class<T>)ClassReflection.forName(className);
+				} catch (ReflectionException ex) {
+					throw new SerializationException(ex);
+				}
+			}
+		}
+		return type;
+	}
 
 	/** @param type May be null if the type is unknown.
 	 * @param elementType May be null if the type is unknown.
@@ -891,17 +918,7 @@ public class Json {
 		if (jsonData == null) return null;
 
 		if (jsonData.isObject()) {
-			String className = typeName == null ? null : jsonData.getString(typeName, null);
-			if (className != null) {
-				type = getClass(className);
-				if (type == null) {
-					try {
-						type = (Class<T>)ClassReflection.forName(className);
-					} catch (ReflectionException ex) {
-						throw new SerializationException(ex);
-					}
-				}
-			}
+			type = determineType(type, jsonData);
 
 			if (type == null) {
 				if (defaultSerializer != null) return (T)defaultSerializer.read(this, jsonData, type);

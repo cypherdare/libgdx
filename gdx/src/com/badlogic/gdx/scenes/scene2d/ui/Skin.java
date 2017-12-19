@@ -40,6 +40,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.Json.ReadOnlySerializer;
+import com.badlogic.gdx.utils.Json.Serializer;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.SerializationException;
@@ -422,55 +423,43 @@ public class Skin implements Disposable {
 		final Skin skin = this;
 
 		final Json json = new Json() {
+			static final String CASCADE_PARENT_TAG = "parent";
+			
 			public <T> T readValue (Class<T> type, Class elementType, JsonValue jsonData) {
 				// If the JSON is a string but the type is not, look up the actual value by name.
 				if (jsonData.isString() && !ClassReflection.isAssignableFrom(CharSequence.class, type))
 					return get(jsonData.asString(), type);
-				return super.readValue(type, elementType, jsonData);
-			}
-
-			static final String CASCADE_PARENT_TAG = "parent";
-
-			protected boolean ignoreUnknownField (Class type, String fieldName) {
-				return fieldName.equals(CASCADE_PARENT_TAG);
-			}
-
-			public void readFields (Object object, JsonValue jsonMap) {
-				ObjectMap<String, FieldMetadata> fields = getFields(object.getClass());
-				// Use parent's field values as defaults if "parent" isn't the name of an actual field.
-				if (jsonMap.get(CASCADE_PARENT_TAG) != null && !fields.containsKey(CASCADE_PARENT_TAG)) {
-					Class parentType = object.getClass();
-					String parentName = readValue(CASCADE_PARENT_TAG, String.class, jsonMap);
-					Object parent = null;
-					while (parent == null && parentType != Object.class) {
-						try {
-							parent = get(parentName, parentType);
-						} catch (GdxRuntimeException e) { // parent doesn't exist
-							parentType = parentType.getSuperclass(); // can use ancestor class as parent
+				
+				if (jsonData.isObject()) {
+					String parentName = jsonData.getString(CASCADE_PARENT_TAG, null);
+					if (parentName != null) {
+						Class<T> determinedType = determineType(type, jsonData);
+							if (!BitmapFont.class.isAssignableFrom(determinedType) && 
+								!TintedDrawable.class.isAssignableFrom(determinedType)){
+							Object parent = findParent(parentName, determinedType);
+							Object copy = copy(parent, determinedType);
+							readFields(copy, jsonData);
+							return (T)copy;
 						}
-					}
-					if (parent != null) { // Have parent. Copy field values to use as defaults.
-						ObjectMap<String, FieldMetadata> parentFields = getFields(parentType);
-						for (ObjectMap.Entry<String, FieldMetadata> entry : parentFields) {
-							Field srcField = entry.value.field;
-							Field dstField = fields.get(entry.key).field;
-							try {
-								dstField.set(object, srcField.get(parent));
-							} catch (ReflectionException e) {
-								SerializationException se = new SerializationException(
-									"Failed to copy parent field " + srcField.getName() + " for parent " + parentName, e);
-								se.addTrace(jsonMap.child.trace());
-								throw se;
-							}
-						}
-					} else if (!getIgnoreUnknownFields()) {
-						SerializationException se = new SerializationException("Could not find parent with name " + parentName);
-						se.addTrace(jsonMap.child.trace());
-						throw se;
 					}
 				}
-				super.readFields(object, jsonMap);
+				
+				return super.readValue(type, elementType, jsonData);
 			}
+			
+			Object findParent (String parentName, Class childType){
+				Class parentType = childType;
+				Object parent = null;
+				while (parent == null && parentType != Object.class) {
+					try {
+						parent = get(parentName, parentType);
+					} catch (GdxRuntimeException e) { // parent doesn't exist
+						parentType = parentType.getSuperclass(); // can use ancestor class as parent
+					}
+				}
+				return parent;
+			}
+
 		};
 		json.setTypeName(null);
 		json.setUsePrototypes(false);
@@ -544,7 +533,7 @@ public class Skin implements Disposable {
 			}
 		});
 
-		json.setSerializer(Color.class, new ReadOnlySerializer<Color>() {
+		json.setSerializer(Color.class, new Serializer<Color>() {
 			public Color read (Json json, JsonValue jsonData, Class type) {
 				if (jsonData.isString()) return get(jsonData.asString(), Color.class);
 				String hex = json.readValue("hex", String.class, (String)null, jsonData);
@@ -554,6 +543,10 @@ public class Skin implements Disposable {
 				float b = json.readValue("b", float.class, 0f, jsonData);
 				float a = json.readValue("a", float.class, 1f, jsonData);
 				return new Color(r, g, b, a);
+			}
+			
+			public void write (Json json, Color object, Class knownType){
+				json.writeValue(object.toString());
 			}
 		});
 
