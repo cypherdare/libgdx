@@ -397,7 +397,7 @@ public class TexturePacker {
 			writer.write("\n" + page.imageName + "\n");
 			writer.write("size: " + page.imageWidth + "," + page.imageHeight + "\n");
 			writer.write("format: " + settings.format + "\n");
-			writer.write("filter: " + settings.filterMin + "," + settings.filterMag + "\n");
+			writer.write("filter: " + settings.filterMin + "," + settings.filterMag + "," + settings.anisotropicFilterLevel + "\n");
 			writer.write("repeat: " + getRepeatValue() + "\n");
 
 			page.outputRects.sort();
@@ -820,6 +820,7 @@ public class TexturePacker {
 		public boolean stripWhitespaceX, stripWhitespaceY;
 		public int alphaThreshold;
 		public TextureFilter filterMin = TextureFilter.Nearest, filterMag = TextureFilter.Nearest;
+		public int anisotropicFilterLevel = 1;
 		public TextureWrap wrapX = TextureWrap.ClampToEdge, wrapY = TextureWrap.ClampToEdge;
 		public Format format = Format.RGBA8888;
 		public boolean alias = true;
@@ -875,6 +876,7 @@ public class TexturePacker {
 			outputFormat = settings.outputFormat;
 			filterMin = settings.filterMin;
 			filterMag = settings.filterMag;
+			anisotropicFilterLevel = settings.anisotropicFilterLevel;
 			wrapX = settings.wrapX;
 			wrapY = settings.wrapY;
 			debug = settings.debug;

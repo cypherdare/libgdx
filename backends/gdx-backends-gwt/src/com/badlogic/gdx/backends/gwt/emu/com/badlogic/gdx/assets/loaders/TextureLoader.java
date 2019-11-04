@@ -72,6 +72,7 @@ public class TextureLoader extends AsynchronousAssetLoader<Texture, TextureLoade
 		if (parameter != null) {
 			texture.setFilter(parameter.minFilter, parameter.magFilter);
 			texture.setWrap(parameter.wrapU, parameter.wrapV);
+			texture.setAnisotropicFilter(parameter.anisotropicFilterLevel);
 		}
 		return texture;
 	}
@@ -94,5 +95,6 @@ public class TextureLoader extends AsynchronousAssetLoader<Texture, TextureLoade
 		public TextureFilter magFilter = TextureFilter.Nearest;
 		public TextureWrap wrapU = TextureWrap.ClampToEdge;
 		public TextureWrap wrapV = TextureWrap.ClampToEdge;
+		public float anisotropicFilterLevel = 1.0f;
 	}
 }

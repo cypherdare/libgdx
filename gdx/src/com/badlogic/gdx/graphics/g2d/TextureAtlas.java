@@ -63,9 +63,10 @@ public class TextureAtlas implements Disposable {
 			public final TextureFilter magFilter;
 			public final TextureWrap uWrap;
 			public final TextureWrap vWrap;
+			public final float anisotropicFilterLevel;
 
 			public Page (FileHandle handle, float width, float height, boolean useMipMaps, Format format, TextureFilter minFilter,
-				TextureFilter magFilter, TextureWrap uWrap, TextureWrap vWrap) {
+				TextureFilter magFilter, TextureWrap uWrap, TextureWrap vWrap, float anisotropicFilterLevel) {
 				this.width = width;
 				this.height = height;
 				this.textureFile = handle;
@@ -75,6 +76,7 @@ public class TextureAtlas implements Disposable {
 				this.magFilter = magFilter;
 				this.uWrap = uWrap;
 				this.vWrap = vWrap;
+				this.anisotropicFilterLevel = anisotropicFilterLevel;
 			}
 		}
 
@@ -120,9 +122,13 @@ public class TextureAtlas implements Disposable {
 						}
 						Format format = Format.valueOf(tuple[0]);
 
-						readTuple(reader);
+						int filterTupleLength = readTuple(reader);
 						TextureFilter min = TextureFilter.valueOf(tuple[0]);
 						TextureFilter max = TextureFilter.valueOf(tuple[1]);
+						float anisotropicFilterLevel = 1f;
+						if (filterTupleLength > 2){ // anisotropy is optional
+							anisotropicFilterLevel = Float.parseFloat(tuple[2]);
+						}
 
 						String direction = readValue(reader);
 						TextureWrap repeatX = ClampToEdge;
@@ -136,7 +142,7 @@ public class TextureAtlas implements Disposable {
 							repeatY = Repeat;
 						}
 
-						pageImage = new Page(file, width, height, min.isMipMap(), format, min, max, repeatX, repeatY);
+						pageImage = new Page(file, width, height, min.isMipMap(), format, min, max, repeatX, repeatY, anisotropicFilterLevel);
 						pages.add(pageImage);
 					} else {
 						String rotateValue = readValue(reader);
@@ -253,10 +259,12 @@ public class TextureAtlas implements Disposable {
 				texture = new Texture(page.textureFile, page.format, page.useMipMaps);
 				texture.setFilter(page.minFilter, page.magFilter);
 				texture.setWrap(page.uWrap, page.vWrap);
+				texture.setAnisotropicFilter(page.anisotropicFilterLevel);
 			} else {
 				texture = page.texture;
 				texture.setFilter(page.minFilter, page.magFilter);
 				texture.setWrap(page.uWrap, page.vWrap);
+				texture.setAnisotropicFilter(page.anisotropicFilterLevel);
 			}
 			textures.add(texture);
 			pageToTexture.put(page, texture);
@@ -448,7 +456,7 @@ public class TextureAtlas implements Disposable {
 		return line.substring(colon + 1).trim();
 	}
 
-	/** Returns the number of tuple values read (1, 2 or 4). */
+	/** Returns the number of tuple values read (1-4). */
 	static int readTuple (BufferedReader reader) throws IOException {
 		String line = reader.readLine();
 		int colon = line.indexOf(':');
